@@ -21,7 +21,7 @@ export default function RootLayout({
       <head>
         {/* استایل برنامه — شامل فونت وزیرمتن به صورت جاسازی‌شده */}
         {/* eslint-disable-next-line @next/next/no-css-tags */}
-        <link rel="stylesheet" href="/app.css?v=r6" />
+        <link rel="stylesheet" href="/app.css?v=r7" />
       </head>
       <body>{children}</body>
     </html>
