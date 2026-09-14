@@ -12,7 +12,7 @@ export default function Home() {
   return (
     <>
       <div dangerouslySetInnerHTML={{ __html: BODY_HTML }} />
-      <script src="/app.js?v=r6" defer />
+      <script src="/app.js?v=r7" defer />
     </>
   );
 }
