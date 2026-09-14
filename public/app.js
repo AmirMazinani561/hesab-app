@@ -1,5 +1,5 @@
 /* نسخهٔ رابط کاربری — برای تشخیص اینکه مرورگر کد تازه را گرفته یا نه */
-const APP_BUILD='r6-report';
+const APP_BUILD='r7-report';
 console.log('%cرابط کاربری نسخهٔ '+APP_BUILD,'color:#4ade80;font-weight:bold');
 
 /* ---- شناسه‌ساز ----
@@ -1212,10 +1212,13 @@ function buildReport(){
   const balW = mine.filter(t=>(!d2 || t.d<=d2) && t.s!=='pending')
                    .reduce((s,t)=>s+W(t),0);
 
-  /* قیمت مبنا: قیمت آخرین تراکنشِ قیمت‌دار داخل بازه */
-  const priced = rows.filter(t=>t.pr).sort(byDate);
-  const lastTx = priced[priced.length-1] || null;
-  const basePr = lastTx ? lastTx.pr : 0;
+  /* قیمت مبنا: قیمت آخرین تراکنشِ قیمت‌دار داخل بازه.
+     اگر بازه تراکنش قیمت‌دار نداشت، آخرین قیمت پیش از پایان بازه ملاک است. */
+  const priced   = rows.filter(t=>t.pr).sort(byDate);
+  const fallback = mine.filter(t=>t.pr && t.s!=='pending' && (!d2 || t.d<=d2)).sort(byDate);
+  const lastTx   = priced[priced.length-1] || fallback[fallback.length-1] || null;
+  const basePr   = lastTx ? lastTx.pr : 0;
+  const prInRange = priced.length>0;
 
   const line = t => `<tr>
       <td class="num">${dshow(t.d)}</td>
@@ -1262,8 +1265,8 @@ function buildReport(){
     <h2>مانده ریالی</h2>
     <div class="tot"><div><span>ریال</span><b>${basePr? fa(balW*basePr) : '—'}</b></div></div>
     <div class="hint no-print">${basePr
-      ? `مانده وزنی × ${toFa(group(basePr))} ریال — قیمت آخرین تراکنش بازه، مورخ ${dshow(lastTx.d)}.`
-      : 'در این بازه تراکنش قیمت‌گذاری‌شده‌ای نیست، بنابراین مانده ریالی محاسبه نشد.'}</div>
+      ? `مانده وزنی × ${toFa(group(basePr))} ریال — قیمت آخرین تراکنش${prInRange?' بازه':'ِ ثبت‌شده تا این تاریخ'}، مورخ ${dshow(lastTx.d)}.`
+      : 'هیچ تراکنش قیمت‌گذاری‌شده‌ای تا این تاریخ ثبت نشده، بنابراین مانده ریالی محاسبه نشد.'}</div>
     <div class="acts no-print" style="margin-top:16px">
       <button class="btn" id="r_print">چاپ / خروجی PDF</button>
     </div>
@@ -1275,321 +1278,11 @@ function buildReport(){
 
 /* ============ تبدیل تومان به ریال (یک‌بار مصرف) ============ */
 
-async function convertToRial(){
-  const msg = $('#cv_msg');
-  const say = (t,c) => { msg.innerHTML = `<b style="color:${c}">${t}</b>`; };
-
-  if(($('#cv_ok').value||'').trim() !== 'تبدیل')
-    return say('برای اجرا، عبارت «تبدیل» را دقیقاً در کادر بنویسید.', 'var(--down)');
-
-  const targets = txs.filter(t => t.a || t.pr);
-  if(!targets.length) return say('تراکنشی برای تبدیل وجود ندارد.', 'var(--dim)');
-
-  if(!confirm(
-    `${toFa(targets.length)} تراکنش تبدیل می‌شود:\n`+
-    `• مبلغ و قیمت شمش هر کدام در ۱۰ ضرب می‌شوند\n`+
-    `• وزن و درصد سهم تغییری نمی‌کند\n\n`+
-    `این کار برگشت‌ناپذیر است. ادامه می‌دهید؟`)) return;
-
-  // ابتدا نسخهٔ پشتیبان خودکار، تا اگر چیزی خراب شد داده از دست نرود
-  try{
-    dl(`backup-before-rial-${todayJ()||'now'}.json`,
-       JSON.stringify({v:1,partners,txs,uid,curPrice,at:new Date().toISOString()},null,2),
-       'application/json');
-  }catch(e){ /* اگر دانلود نشد هم ادامه می‌دهیم */ }
-
-  say('در حال تبدیل…', 'var(--dim)');
-
-  // تغییر محلی
-  targets.forEach(t => {
-    if(t.a)  t.a  = Math.round(t.a  * 10);
-    if(t.pr) t.pr = Math.round(t.pr * 10);
-  });
-  // قیمت جاری هم باید هم‌واحد شود
-  const cp = parseNum(curPrice);
-  if(cp) { curPrice = toFa(group(cp*10)); const el=$('#price'); if(el) el.value=curPrice; }
-
-  save(); fillSel(); render();
-
-  // همگام‌سازی با سرور، دانه‌دانه تا یک خطا کل کار را متوقف نکند
-  if(CLOUD){
-    let done=0, fail=0;
-    for(const t of targets){
-      try{ await cTxUpd(t); done++; }catch(e){ fail++; }
-      if(done % 10 === 0) say(`در حال ذخیره… ${toFa(done)} از ${toFa(targets.length)}`, 'var(--dim)');
-    }
-    try{ await cPrice(curPrice); }catch(e){}
-    say(fail
-      ? `${toFa(done)} تراکنش ذخیره شد، ${toFa(fail)} مورد ناموفق بود. صفحه را تازه کنید و دوباره بررسی کنید.`
-      : `✓ ${toFa(done)} تراکنش با موفقیت به ریال تبدیل شد.`,
-      fail ? 'var(--down)' : 'var(--up)');
-  } else {
-    say(`✓ ${toFa(targets.length)} تراکنش به ریال تبدیل شد.`, 'var(--up)');
-  }
-  $('#cv_ok').value='';
-}
-
 /* ============ گزارش سرمایه‌گذار ============ */
-
-function buildReport(){
-  const out = $('#r_out');
-  const pid = $('#r_p').value;
-  if(!pid){ out.innerHTML='<div class="card"><div class="empty">ابتدا یک سرمایه‌گذار انتخاب کنید.</div></div>'; return; }
-  const P = partners.find(x=>x.id===pid);
-  if(!P){ out.innerHTML='<div class="card"><div class="empty">سرمایه‌گذار یافت نشد.</div></div>'; return; }
-
-  const d1 = digits($('#r_d1').value), d2 = digits($('#r_d2').value);
-  if(d1 && !validDate(d1)) return alert('تاریخ «از» معتبر نیست.');
-  if(d2 && !validDate(d2)) return alert('تاریخ «تا» معتبر نیست.');
-  if(d1 && d2 && d1 > d2)  return alert('تاریخ «از» نباید بزرگ‌تر از «تا» باشد.');
-
-  const mine    = txs.filter(t=>t.p===pid);
-  const inRange = t => (!d1 || t.d>=d1) && (!d2 || t.d<=d2);
-  const byDate  = (a,b)=>a.d.localeCompare(b.d)||String(a.id).localeCompare(String(b.id));
-
-  // فقط تراکنش‌های قیمت‌گذاری‌شده وارد محاسبه می‌شوند
-  const rows    = mine.filter(t=>inRange(t) && t.s!=='pending').sort(byDate);
-  const pendCnt = mine.filter(t=>inRange(t) && t.s==='pending').length;
-
-  const ins  = rows.filter(t=>t.k==='IN');
-  const outs = rows.filter(t=>t.k==='OUT');
-  const inR  = ins .reduce((s,t)=>s+t.a,0);
-  const outR = outs.reduce((s,t)=>s+t.a,0);
-
-  /* مانده وزنی: از روز اول تا پایان بازهٔ انتخاب‌شده (بدون کف تاریخی) */
-  const upto    = mine.filter(t=>(!d2 || t.d<=d2) && t.s!=='pending');
-  const balW    = upto.reduce((s,t)=>s+W(t),0);
-
-  /* قیمت مبنا: قیمت آخرین تراکنشِ قیمت‌دار در بازهٔ انتخاب‌شده */
-  const priced  = rows.filter(t=>t.pr).sort(byDate);
-  const lastTx  = priced[priced.length-1] || null;
-  const basePr  = lastTx ? lastTx.pr : 0;
-  const balR    = basePr ? balW * basePr : 0;
-
-  const line = t => `<tr>
-      <td class="num">${dshow(t.d)}</td>
-      <td class="num">${fa(t.a)}</td>
-      <td style="color:var(--dim)">${esc(t.t)||'—'}</td></tr>`;
-
-  const tbl = (arr, sum, cls, label) => arr.length
-    ? `<div style="overflow-x:auto"><table><thead><tr>
-         <th style="width:130px">تاریخ</th><th style="width:190px">مبلغ (ریال)</th><th>شرح</th>
-       </tr></thead><tbody>${arr.map(line).join('')}
-       <tr class="sumrow"><td><b>جمع کل</b></td>
-         <td class="num"><b class="${cls}">${fa(sum)}</b></td>
-         <td style="color:var(--dim)">${toFa(arr.length)} مورد</td></tr>
-       </tbody></table></div>`
-    : `<div class="empty">${label}</div>`;
-
-  const period = (d1||d2)
-    ? `${d1?dshow(d1):'ابتدا'} تا ${d2?dshow(d2):'انتها'}`
-    : 'کل دوره';
-
-  out.innerHTML = `
-  <div class="card pr-off" style="margin-bottom:16px">
-    <h2>گزارش سرمایه‌گذار — ${esc(P.name)}</h2>
-    <div style="color:var(--dim);font-size:13.5px;line-height:2">
-      بازهٔ گزارش: <b style="color:var(--txt)">${period}</b>
-      ${pendCnt?` · <span style="color:#d6b16a">${toFa(pendCnt)} تراکنش در انتظار قیمت (خارج از محاسبه)</span>`:''}
-    </div>
-  </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <h2>واریزها</h2>
-    ${tbl(ins, inR, 'up', 'در این بازه واریزی ثبت نشده است.')}
-  </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <h2>برداشت‌ها</h2>
-    ${tbl(outs, outR, 'down', 'در این بازه برداشتی ثبت نشده است.')}
-  </div>
-
-  <div class="card">
-    <h2>مانده</h2>
-    <div class="tot">
-      <div><span>مانده وزنی</span><b>${kg(balW)}</b></div>
-      <div><span>مانده ریالی</span><b>${basePr? fa(balR) : '—'}</b></div>
-    </div>
-    <div class="hint no-print">
-      مانده وزنی از نخستین تراکنش تا ${d2?dshow(d2):'آخرین تراکنش'} محاسبه شده است.
-      ${basePr
-        ? `مانده ریالی = مانده وزنی × ${toFa(group(basePr))} ریال (قیمت آخرین تراکنش بازه، مورخ ${dshow(lastTx.d)}).`
-        : 'در این بازه تراکنش قیمت‌گذاری‌شده‌ای نیست، بنابراین مانده ریالی محاسبه نشد.'}
-    </div>
-    <div class="acts no-print" style="margin-top:16px">
-      <button class="btn" id="r_print">چاپ / خروجی PDF</button>
-    </div>
-  </div>`;
-
-  const pb = $('#r_print');
-  if(pb) pb.onclick = () => window.print();
-}
 
 /* ============ تبدیل تومان به ریال (یک‌بار مصرف) ============ */
 
-async function convertToRial(){
-  const msg = $('#cv_msg');
-  const say = (t,c) => { msg.innerHTML = `<b style="color:${c}">${t}</b>`; };
-
-  if(($('#cv_ok').value||'').trim() !== 'تبدیل')
-    return say('برای اجرا، عبارت «تبدیل» را دقیقاً در کادر بنویسید.', 'var(--down)');
-
-  const targets = txs.filter(t => t.a || t.pr);
-  if(!targets.length) return say('تراکنشی برای تبدیل وجود ندارد.', 'var(--dim)');
-
-  if(!confirm(
-    `${toFa(targets.length)} تراکنش تبدیل می‌شود:\n`+
-    `• مبلغ و قیمت شمش هر کدام در ۱۰ ضرب می‌شوند\n`+
-    `• وزن و درصد سهم تغییری نمی‌کند\n\n`+
-    `این کار برگشت‌ناپذیر است. ادامه می‌دهید؟`)) return;
-
-  // ابتدا نسخهٔ پشتیبان خودکار، تا اگر چیزی خراب شد داده از دست نرود
-  try{
-    dl(`backup-before-rial-${todayJ()||'now'}.json`,
-       JSON.stringify({v:1,partners,txs,uid,curPrice,at:new Date().toISOString()},null,2),
-       'application/json');
-  }catch(e){ /* اگر دانلود نشد هم ادامه می‌دهیم */ }
-
-  say('در حال تبدیل…', 'var(--dim)');
-
-  // تغییر محلی
-  targets.forEach(t => {
-    if(t.a)  t.a  = Math.round(t.a  * 10);
-    if(t.pr) t.pr = Math.round(t.pr * 10);
-  });
-  // قیمت جاری هم باید هم‌واحد شود
-  const cp = parseNum(curPrice);
-  if(cp) { curPrice = toFa(group(cp*10)); const el=$('#price'); if(el) el.value=curPrice; }
-
-  save(); fillSel(); render();
-
-  // همگام‌سازی با سرور، دانه‌دانه تا یک خطا کل کار را متوقف نکند
-  if(CLOUD){
-    let done=0, fail=0;
-    for(const t of targets){
-      try{ await cTxUpd(t); done++; }catch(e){ fail++; }
-      if(done % 10 === 0) say(`در حال ذخیره… ${toFa(done)} از ${toFa(targets.length)}`, 'var(--dim)');
-    }
-    try{ await cPrice(curPrice); }catch(e){}
-    say(fail
-      ? `${toFa(done)} تراکنش ذخیره شد، ${toFa(fail)} مورد ناموفق بود. صفحه را تازه کنید و دوباره بررسی کنید.`
-      : `✓ ${toFa(done)} تراکنش با موفقیت به ریال تبدیل شد.`,
-      fail ? 'var(--down)' : 'var(--up)');
-  } else {
-    say(`✓ ${toFa(targets.length)} تراکنش به ریال تبدیل شد.`, 'var(--up)');
-  }
-  $('#cv_ok').value='';
-}
-
 /* ============ گزارش سرمایه‌گذار ============ */
-
-function buildReport(){
-  const out = $('#r_out');
-  const pid = $('#r_p').value;
-  if(!pid){ out.innerHTML='<div class="card"><div class="empty">ابتدا یک سرمایه‌گذار انتخاب کنید.</div></div>'; return; }
-  const P = partners.find(x=>x.id===pid);
-  if(!P){ out.innerHTML='<div class="card"><div class="empty">سرمایه‌گذار یافت نشد.</div></div>'; return; }
-
-  const d1 = digits($('#r_d1').value), d2 = digits($('#r_d2').value);
-  if(d1 && !validDate(d1)) return alert('تاریخ «از» معتبر نیست.');
-  if(d2 && !validDate(d2)) return alert('تاریخ «تا» معتبر نیست.');
-  if(d1 && d2 && d1 > d2)  return alert('تاریخ «از» نباید بزرگ‌تر از «تا» باشد.');
-
-  const mine = txs.filter(t=>t.p===pid);
-  const inRange = t => (!d1 || t.d>=d1) && (!d2 || t.d<=d2);
-  const before  = mine.filter(t=>d1 && t.d<d1 && t.s!=='pending');
-  const rows    = mine.filter(t=>inRange(t) && t.s!=='pending')
-                      .sort((a,b)=>a.d.localeCompare(b.d)||String(a.id).localeCompare(String(b.id)));
-  const pendCnt = mine.filter(t=>inRange(t) && t.s==='pending').length;
-
-  const px = price();
-  const sumW = a => a.reduce((s,t)=>s+W(t),0);
-  const openW = sumW(before);                       // مانده وزنی ابتدای دوره
-  const inW   = rows.filter(t=>t.k==='IN').reduce((s,t)=>s+W(t),0);
-  const outW  = -rows.filter(t=>t.k==='OUT').reduce((s,t)=>s+W(t),0);
-  const closeW= openW + inW - outW;
-  const inR   = rows.filter(t=>t.k==='IN').reduce((s,t)=>s+t.a,0);
-  const outR  = rows.filter(t=>t.k==='OUT').reduce((s,t)=>s+t.a,0);
-
-  // سهم از کل (بر اساس همهٔ تراکنش‌های تأییدشده تا پایان بازه)
-  const upto = t => (!d2 || t.d<=d2) && t.s!=='pending';
-  const totalW = txs.filter(upto).reduce((s,t)=>s+W(t),0);
-  const myW    = mine.filter(upto).reduce((s,t)=>s+W(t),0);
-  const share  = totalW>0 ? (myW/totalW*100) : 0;
-
-  let run = openW;
-  const body = rows.map(t=>{
-    const w = W(t); run += w;
-    return `<tr>
-      <td class="num">${dshow(t.d)}</td>
-      <td><span class="tag ${t.k==='IN'?'t-in':'t-out'}">${t.k==='IN'?'ورود':'خروج'}</span></td>
-      <td class="num">${fa(t.a)}</td>
-      <td class="num">${fa(t.pr)}</td>
-      <td class="num ${t.k==='IN'?'up':'down'}">${t.k==='IN'?'+':'−'}${kg(Math.abs(w))}</td>
-      <td class="num">${kg(run)}</td>
-      <td style="color:var(--dim)">${esc(t.t)||'—'}</td></tr>`;
-  }).join('');
-
-  const period = (d1||d2)
-    ? `${d1?dshow(d1):'ابتدا'} تا ${d2?dshow(d2):'امروز'}`
-    : 'کل دوره';
-
-  out.innerHTML = `
-  <div class="card rep-head" style="margin-bottom:16px">
-    <h2>گزارش سرمایه‌گذار — ${esc(P.name)}</h2>
-    <div style="color:var(--dim);font-size:13.5px;line-height:2">
-      بازهٔ گزارش: <b style="color:var(--txt)">${period}</b>
-      · تعداد تراکنش: <b style="color:var(--txt)">${toFa(rows.length)}</b>
-      ${pendCnt?` · <span style="color:#d6b16a">${toFa(pendCnt)} تراکنش در انتظار قیمت (خارج از محاسبه)</span>`:''}
-    </div>
-  </div>
-
-  <div class="card sec-w" style="margin-bottom:16px">
-    <h2>۳. گردش وزنی (کیلوگرم)</h2>
-    <div class="tot pr-solo">
-      <div class="pr-off"><span>مانده ابتدای دوره</span><b>${kg(openW)}</b></div>
-      <div class="pr-off"><span>ورودی دوره</span><b class="up">+${kg(inW)}</b></div>
-      <div class="pr-off"><span>خروجی دوره</span><b class="down">−${kg(outW)}</b></div>
-      <div><span>مانده وزنی</span><b>${kg(closeW)}</b></div>
-    </div>
-  </div>
-
-  <div class="card sec-r" style="margin-bottom:16px">
-    <h2>۴. گردش ریالی</h2>
-    <div class="tot pr-solo">
-      <div class="pr-off"><span>جمع واریز</span><b class="up">${fa(inR)}</b></div>
-      <div class="pr-off"><span>جمع برداشت</span><b class="down">${fa(outR)}</b></div>
-      <div class="pr-off"><span>خالص دوره</span><b>${fa(inR-outR)}</b></div>
-      <div><span>مانده ریالی</span><b>${px? fa(closeW*px) : '—'}</b></div>
-    </div>
-    ${px?`<div class="hint no-print">بر مبنای قیمت جاری ${toFa(group(px))} ریال به ازای هر کیلوگرم.</div>`
-        :`<div class="hint no-print">برای محاسبهٔ مانده ریالی، قیمت شمش را در بالای صفحه وارد کنید.</div>`}
-  </div>
-
-  <div class="card" style="margin-bottom:16px">
-    <h2>سهم از کل سرمایه</h2>
-    <div class="tot">
-      <div><span>وزن این سرمایه‌گذار</span><b>${kg(myW)}</b></div>
-      <div><span>وزن کل شرکا</span><b>${kg(totalW)}</b></div>
-      <div><span>درصد سهم</span><b class="up">${toFa(share.toFixed(2))}٪</b></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>ریز تراکنش‌ها</h2>
-    ${rows.length?`<div style="overflow-x:auto"><table><thead><tr>
-      <th>تاریخ</th><th>نوع</th><th>مبلغ (ریال)</th><th>قیمت شمش</th>
-      <th>وزن (kg)</th><th>مانده وزنی</th><th>شرح</th>
-    </tr></thead><tbody>${body}</tbody></table></div>`
-    :'<div class="empty">در این بازه تراکنش تأییدشده‌ای وجود ندارد.</div>'}
-    <div class="acts no-print" style="margin-top:16px">
-      <button class="btn" id="r_print">چاپ / خروجی PDF</button>
-    </div>
-  </div>`;
-
-  const pb = $('#r_print');
-  if(pb) pb.onclick = () => window.print();
-}
 
 function renderStor(){
   const el=$('#stor'); if(!el) return;
