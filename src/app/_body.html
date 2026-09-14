@@ -1,0 +1,239 @@
+
+<header><div class="wrap hd">
+  <div class="logo">⬜</div>
+  <div><h1>حساب سرمایه‌گذاران</h1></div>
+  <div class="pricebox">
+    <div><label>قیمت جاری شمش (ریال / کیلوگرم)</label>
+    <input id="price" class="money" inputmode="numeric" placeholder="0"></div>
+  </div>
+</div></header>
+
+<div class="wrap">
+<nav>
+  <button class="on" data-t="dash">داشبورد</button>
+  <button data-t="new">ثبت تراکنش</button>
+  <button data-t="tx">تراکنش‌ها</button>
+  <button data-t="pend">در انتظار قیمت <span id="pendbadge" class="hide">۰</span></button>
+  <button data-t="rep">گزارش</button>
+  <button data-t="partners">شرکا</button>
+  <button data-t="data">داده و پشتیبان</button>
+  <span id="saved" style="margin-right:auto;align-self:center;font-size:12px;color:var(--dim)"></span>
+  <span id="cloud" class="hide" style="align-self:center;font-size:12px;color:var(--dim);
+    display:flex;align-items:center;gap:8px"></span>
+</nav>
+
+<!-- داشبورد -->
+<section id="dash">
+  <div class="card" style="margin-bottom:16px">
+    <h2>وضعیت کل</h2>
+    <div class="tot" id="tot"></div>
+  </div>
+  <div class="grid cards" id="cards"></div>
+  <div class="grid two mt" id="charts">
+    <div class="card"><h2>سهم شرکا</h2><div id="pie" style="display:grid;place-items:center"></div></div>
+    <div class="card"><h2>روند وزن انباشته</h2><div id="line"></div></div>
+  </div>
+</section>
+
+<!-- ثبت تراکنش -->
+<section id="new" class="hide">
+  <div class="card">
+    <h2>ثبت تراکنش جدید</h2>
+    <div class="form f">
+      <div><label>شریک</label><select id="n_p"></select></div>
+      <div><label>نوع</label><select id="n_k">
+        <option value="IN">ورود پول (واریز)</option>
+        <option value="OUT">خروج پول (برداشت)</option></select></div>
+      <div><label>مبلغ (ریال)</label><input id="n_a" class="money ltr" inputmode="numeric" placeholder="0"></div>
+      <div><label>قیمت شمش در آن لحظه (ریال/کیلوگرم)</label><input id="n_pr" class="money ltr" inputmode="numeric" placeholder="0"></div>
+      <div><label>تاریخ شمسی</label><input id="n_d" class="jdate ltr" inputmode="numeric" placeholder="____/__/__" maxlength="10"></div>
+      <div><label>شرح</label><input id="n_t" placeholder="اختیاری"></div>
+    </div>
+    <div class="prev"><span>معادل وزنی این تراکنش</span><b id="prev">— کیلوگرم</b>
+      <span id="prev2"></span></div>
+    <button class="btn" id="save">ثبت تراکنش</button>
+    <div class="hint">تاریخ را بدون اسلش وارد کنید، مثلاً <b class="num">14050622</b> — خودکار به <b class="num">1405/06/22</b> تبدیل می‌شود.</div>
+  </div>
+</section>
+
+<!-- تراکنش‌ها -->
+<section id="tx" class="hide">
+  <div class="card">
+    <h2>تاریخچهٔ تراکنش‌ها</h2>
+    <div class="form f" style="margin-bottom:14px">
+      <div><label>شریک</label><select id="f_p"><option value="">همه</option></select></div>
+      <div><label>نوع</label><select id="f_k">
+        <option value="">همه</option><option value="IN">ورود</option><option value="OUT">خروج</option></select></div>
+      <div><label>از تاریخ</label><input id="f_d1" class="jdate ltr" inputmode="numeric" placeholder="____/__/__" maxlength="10"></div>
+      <div><label>تا تاریخ</label><input id="f_d2" class="jdate ltr" inputmode="numeric" placeholder="____/__/__" maxlength="10"></div>
+    </div>
+    <div id="txwrap"></div>
+  </div>
+</section>
+
+<!-- گزارش -->
+<section id="rep" class="hide">
+  <div class="card no-print" style="margin-bottom:16px">
+    <h2>گزارش سرمایه‌گذار</h2>
+    <div class="form f">
+      <div><label>سرمایه‌گذار</label><select id="r_p"></select></div>
+      <div><label>از تاریخ</label><input id="r_d1" class="jdate ltr" inputmode="numeric" placeholder="____/__/__" maxlength="10"></div>
+      <div><label>تا تاریخ</label><input id="r_d2" class="jdate ltr" inputmode="numeric" placeholder="____/__/__" maxlength="10"></div>
+      <div style="display:flex;align-items:flex-end;gap:8px">
+        <button class="btn" id="r_go">تهیهٔ گزارش</button>
+      </div>
+    </div>
+    <div class="hint">اگر تاریخ‌ها را خالی بگذارید، کل بازهٔ موجود در نظر گرفته می‌شود.</div>
+  </div>
+  <div id="r_out"></div>
+</section>
+
+<!-- شرکا -->
+<!-- در انتظار قیمت‌گذاری -->
+<section id="pend" class="hide">
+  <div class="card" style="margin-bottom:16px">
+    <h2>تراکنش‌های در انتظار قیمت‌گذاری</h2>
+    <p style="color:var(--dim);font-size:13.5px;line-height:2;margin:6px 0 0">
+      این تراکنش‌ها از «کیف پول» آمده‌اند و هنوز قیمت شمش ندارند، بنابراین
+      <b style="color:#fcd34d">در محاسبات وزن و درصد سهم وارد نشده‌اند</b>.
+      برای هرکدام قیمت را وارد و تأیید کنید، یا همه را با یک قیمت یکجا تأیید نمایید.
+    </p>
+  </div>
+
+  <div class="card" style="margin-bottom:16px" id="bulkbox">
+    <h2>تأیید دسته‌ای</h2>
+    <div class="grid" style="grid-template-columns:1fr auto;gap:12px;align-items:end">
+      <div><label>قیمت شمش برای همهٔ موارد انتخاب‌شده (ریال به ازای هر کیلوگرم)</label>
+        <input id="bulk_pr" class="money" inputmode="numeric" placeholder="مثلاً ۹۸۵٬۰۰۰"></div>
+      <button class="btn" id="bulk_go">تأیید انتخاب‌شده‌ها</button>
+    </div>
+  </div>
+
+  <div id="pendwrap"></div>
+</section>
+
+<section id="partners" class="hide">
+  <div class="card">
+    <h2>شرکا</h2>
+    <div id="pwrap"></div>
+    <div class="form f mt" style="max-width:680px;align-items:end">
+      <div><label>نام شریک جدید</label><input id="np_n" placeholder="نام و نام خانوادگی"></div>
+      <div><label>رنگ</label><input id="np_c" type="color" value="#4ade80"></div>
+      <div><button class="btn" id="np_b">افزودن شریک</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- داده و پشتیبان -->
+<section id="data" class="hide">
+  <div class="card" style="margin-bottom:16px">
+    <h2>ورود گروهی از اکسل</h2>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px" id="xtabs">
+      <button class="btn gh xt on" data-x="paste" style="padding:8px 16px;font-size:13px">کپی و چسباندن (ساده‌ترین)</button>
+      <button class="btn gh xt" data-x="file" style="padding:8px 16px;font-size:13px">انتخاب فایل اکسل</button>
+    </div>
+
+    <div id="xp_paste">
+      <p style="font-size:13.5px;color:var(--dim);margin-bottom:10px">
+        در اکسل، سطر عنوان و همهٔ ردیف‌ها را انتخاب کنید (<b style="color:var(--txt)">Ctrl+A</b> بعد
+        <b style="color:var(--txt)">Ctrl+C</b>)، بعد در کادر زیر کلیک کنید و
+        <b style="color:var(--txt)">Ctrl+V</b> بزنید. هیچ فایلی لازم نیست و چیزی به هم نمی‌ریزد.
+      </p>
+      <textarea id="x_ta" rows="7" placeholder="اینجا کلیک کنید و Ctrl+V بزنید…"
+        style="width:100%;background:#0b0f14;border:1px solid var(--line);color:var(--txt);
+        border-radius:9px;padding:11px;font:13px/1.6 monospace;direction:ltr;resize:vertical"></textarea>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn" id="x_read">خواندن داده‌ها</button>
+        <button class="btn gh" style="padding:10px 20px;font-size:14px" id="x_clr">پاک کردن کادر</button>
+      </div>
+    </div>
+
+    <div id="xp_file" class="hide">
+      <p style="font-size:13.5px;color:var(--dim);margin-bottom:10px">
+        فایل <b style="color:var(--txt)">.xlsx</b> خود را مستقیم انتخاب کنید — نیازی به تبدیل به CSV نیست.
+        اگر فایل شما قدیمی و با پسوند <b style="color:var(--txt)">.xls</b> است، یک‌بار در اکسل
+        <b style="color:var(--txt)">Save As → Excel Workbook (.xlsx)</b> کنید.
+      </p>
+      <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">
+        <button class="btn" id="x_pick">انتخاب فایل xlsx</button>
+        <input type="file" id="x_file" accept=".xlsx,.csv,.txt" class="hide">
+        <span id="x_fname" style="font-size:12.5px;color:var(--dim)"></span>
+      </div>
+      <div id="x_sheets" class="hide" style="margin-top:12px"></div>
+    </div>
+
+    <div id="x_map" class="hide" style="margin-top:18px"></div>
+    <div id="x_prev" style="margin-top:16px"></div>
+  </div>
+  <div class="card" style="margin-bottom:16px">
+    <h2>پشتیبان‌گیری</h2>
+    <p style="font-size:13.5px;color:var(--dim);margin-bottom:14px">
+      داده‌ها خودکار در همین مرورگر ذخیره می‌شوند و با بستن صفحه از بین نمی‌روند.
+      اما اگر حافظهٔ مرورگر پاک شود داده از دست می‌رود — پس هر چند وقت یک‌بار فایل پشتیبان بگیرید.
+      همین فایل بعداً برای انتقال داده‌ها به نسخهٔ آنلاین استفاده می‌شود.
+    </p>
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn" id="b_exp">دریافت فایل پشتیبان (JSON)</button>
+      <button class="btn gh" style="padding:10px 20px;font-size:14px" id="b_csv">خروجی اکسل تراکنش‌ها (CSV)</button>
+      <button class="btn gh" style="padding:10px 20px;font-size:14px" id="b_imp">بازیابی از فایل پشتیبان</button>
+      <input type="file" id="b_file" accept=".json" class="hide">
+    </div>
+  </div>
+  <div class="card">
+    <h2>وضعیت ذخیره‌سازی</h2>
+    <div class="rows" id="stor" style="font-size:13.5px;max-width:460px"></div>
+    <div class="acts">
+      <button class="btn gh dg" style="padding:10px 20px;font-size:14px" id="b_clr">پاک کردن کامل همهٔ داده‌ها</button>
+    </div>
+    <div class="hint">پیش از پاک کردن حتماً پشتیبان بگیرید. این عمل برگشت‌پذیر نیست.</div>
+  </div>
+</section>
+</div>
+
+
+<!-- صفحهٔ ورود -->
+<div class="ov hide" id="m_login" style="z-index:100;background:#0d1117">
+  <div class="modal" style="max-width:400px;text-align:center">
+    <div style="width:54px;height:54px;border-radius:14px;margin:4px auto 14px;
+      background:linear-gradient(135deg,#8b9dc3,#c9d6e8);display:grid;place-items:center;font-size:26px">⬜</div>
+    <h1 style="font-size:21px;margin-bottom:6px">حساب سرمایه‌گذاران</h1>
+    <p style="font-size:13.5px;color:var(--dim);margin-bottom:20px">برای ورود، نام کاربری و رمز عبور خود را وارد کنید.</p>
+    <div class="f" style="display:grid;gap:12px;text-align:right">
+      <div><label>نام کاربری</label><input id="lg_e" type="text" autocomplete="username" class="ltr" placeholder="admin"></div>
+      <div><label>رمز عبور</label><input id="lg_p" type="password" autocomplete="current-password" class="ltr" placeholder="••••••••"></div>
+    </div>
+    <div id="lg_msg" style="font-size:13px;margin-top:12px;min-height:20px"></div>
+    <button class="btn" id="lg_go" style="width:100%;margin-top:6px;padding:12px">ورود</button>
+  </div>
+</div>
+
+<!-- مودال ویرایش تراکنش -->
+<div class="ov hide" id="m_tx"><div class="modal">
+  <h2>ویرایش تراکنش</h2>
+  <div class="form f">
+    <div><label>شریک</label><select id="e_p"></select></div>
+    <div><label>نوع</label><select id="e_k">
+      <option value="IN">ورود پول (واریز)</option><option value="OUT">خروج پول (برداشت)</option></select></div>
+    <div><label>مبلغ (ریال)</label><input id="e_a" class="money ltr" inputmode="numeric"></div>
+    <div><label>قیمت شمش (ریال/کیلوگرم)</label><input id="e_pr" class="money ltr" inputmode="numeric"></div>
+    <div><label>تاریخ شمسی</label><input id="e_d" class="jdate ltr" inputmode="numeric" maxlength="10"></div>
+    <div><label>شرح</label><input id="e_t"></div>
+  </div>
+  <div class="prev"><span>معادل وزنی</span><b id="eprev">— کیلوگرم</b><span id="eprev2"></span></div>
+  <div class="acts"><button class="btn" id="e_save">ذخیره تغییرات</button>
+    <button class="btn gh" style="padding:10px 20px;font-size:14px" onclick="closeM()">انصراف</button></div>
+</div></div>
+
+<!-- مودال ویرایش شریک -->
+<div class="ov hide" id="m_p"><div class="modal">
+  <h2>ویرایش شریک</h2>
+  <div class="form f">
+    <div><label>نام</label><input id="ep_n"></div>
+    <div><label>رنگ</label><input id="ep_c" type="color"></div>
+    <div><label>یادداشت</label><input id="ep_note" placeholder="اختیاری"></div>
+  </div>
+  <div class="acts"><button class="btn" id="ep_save">ذخیره تغییرات</button>
+    <button class="btn gh" style="padding:10px 20px;font-size:14px" onclick="closeM()">انصراف</button></div>
+</div></div>
+
+

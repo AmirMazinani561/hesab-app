@@ -1,0 +1,63 @@
+/**
+ * همگام‌سازی با نرم‌افزار «حساب سرمایه‌گذاران».
+ *
+ * این فایل را در مخزن کیف پول، در مسیر  src/lib/equity-sync.ts  قرار دهید.
+ *
+ * کار آن: وقتی تراکنشی ثبت می‌شود که یک طرفش حساب سرمایه است
+ * (مثلاً «سرمایه سلطانی»)، همان تراکنش را در نرم‌افزار سرمایه‌گذاری با
+ * وضعیت «در انتظار قیمت» می‌سازد.
+ *
+ * نکات طراحی:
+ *   • هرگز خطا پرتاب نمی‌کند؛ شکست همگام‌سازی نباید ثبت تراکنش کیف پول
+ *     را خراب کند.
+ *   • بدون await صدا زده می‌شود تا پاسخ به کاربر کند نشود.
+ *   • نام حساب‌ها هم فرستاده می‌شود تا تطبیق بر اساس نام ممکن باشد و
+ *     نیازی به یادداشت کردن شناسه‌های طولانی نباشد.
+ */
+
+type WalletTx = {
+  id: string;
+  amount: number;
+  fromAccountId: string;
+  toAccountId: string;
+  shamsiDate: string;          // '1404/06/22'
+  description?: string | null;
+};
+
+export async function syncToEquity(
+  tx: WalletTx,
+  names?: { from?: string; to?: string }
+): Promise<void> {
+  const url   = process.env.EQUITY_URL;          // https://your-app.vercel.app
+  const token = process.env.EQUITY_TOKEN;        // همان WALLET_INTAKE_TOKEN
+
+  if (!url || !token) return;                    // خاموش
+
+  try {
+    const res = await fetch(`${url.replace(/\/$/, "")}/api/wallet-intake`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-intake-token": token,
+      },
+      body: JSON.stringify({
+        id: tx.id,
+        amount: tx.amount,
+        fromAccountId: tx.fromAccountId,
+        toAccountId: tx.toAccountId,
+        fromAccountName: names?.from ?? null,
+        toAccountName: names?.to ?? null,
+        shamsiDate: tx.shamsiDate,
+        description: tx.description ?? "",
+      }),
+      // اگر سرور مقابل کند بود، ثبت تراکنش کیف پول را معطل نکن
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (!res.ok) {
+      console.error("[equity-sync] rejected:", res.status, await res.text());
+    }
+  } catch (e) {
+    console.error("[equity-sync] failed:", e);
+  }
+}
