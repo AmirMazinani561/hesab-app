@@ -411,7 +411,7 @@ export const listEmployees = () => q<PayrollEmployee>(`select * from payroll_emp
 export async function createEmployee(name: string) {
   const id = newId();
   const existing = await q<{ code: string }>(`select code from payroll_employees order by cast(code as unsigned) desc limit 1`);
-  const lastCode = existing.length ? parseInt(existing[0].code) : 1000;
+  const lastCode = existing.length ? parseInt(existing[0].code) : 0;
   const newCode = (lastCode + 1).toString();
   await exec(`insert into payroll_employees (id, code, name) values (?, ?, ?)`, [id, newCode, name]);
   return { id, code: newCode, name };

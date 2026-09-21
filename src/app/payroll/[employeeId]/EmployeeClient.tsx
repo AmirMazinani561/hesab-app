@@ -9,7 +9,7 @@ const MONTHS = [
   "دی", "بهمن", "اسفند"
 ];
 
-const PAYMENT_TYPES = ["مساعده", "حقوق ثابت", "پاداش", "تسویه"];
+const PAYMENT_TYPES = ["پول نقد", "شارژ و اینترنت", "خرید", "حواله حساب"];
 
 const formatRial = (val: string | number) => {
   if (!val) return "";
