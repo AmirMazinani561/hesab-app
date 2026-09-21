@@ -73,6 +73,7 @@ export async function currentUser() {
 
 /** نگهبان: در هر Route Handler اول این را صدا بزنید */
 export async function requireUser() {
+  await ensureDatabase();
   const u = await currentUser();
   if (!u) throw new HttpError(401, "برای این کار باید وارد شوید.");
   return u;

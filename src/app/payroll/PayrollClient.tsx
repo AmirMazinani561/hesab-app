@@ -47,9 +47,13 @@ export default function PayrollClient() {
       if (res.ok) {
         setNewName("");
         await fetchEmployees();
+      } else {
+        const data = await res.json();
+        alert("خطا در ثبت پرسنل: " + (data.error || "نامشخص"));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert("خطا در برقراری ارتباط با سرور");
     } finally {
       setIsSubmitting(false);
     }
