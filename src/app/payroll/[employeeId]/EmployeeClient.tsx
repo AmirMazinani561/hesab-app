@@ -270,13 +270,13 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         .box-input {
           background: var(--bg);
           border: 1px solid var(--line);
-          color: #fff;
-          font-size: 24px;
+          color: var(--text);
+          font-size: 20px;
           font-weight: bold;
-          text-align: center;
-          padding: 8px;
+          padding: 8px 12px;
           border-radius: 6px;
           width: 100%;
+          text-align: center;
           font-family: inherit;
         }
         .box-input:focus { outline: none; border-color: #58a6ff; }
@@ -337,7 +337,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         .pay-input {
           background: var(--panel);
           border: 1px solid var(--line);
-          color: #fff;
+          color: var(--text);
           padding: 8px 12px;
           border-radius: 6px;
           font-family: inherit;
@@ -448,15 +448,12 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           }
           .report-table th { background-color: #f3f4f6 !important; color: #111 !important; text-align: center; }
           
-          .empty-data {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 12px;
+          .empty-data-td {
+            text-align: center !important;
+            vertical-align: middle;
             color: #111 !important;
-            text-align: center;
-            padding: 10px;
+            padding: 20px !important;
+            border-bottom: none !important;
           }
           
           .report-footer-box {
@@ -651,28 +648,28 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                 <div className="report-group-title">
                   <span>جمع {type}: {formatRial(data.total.toString())}</span>
                 </div>
-                {data.list.length > 0 ? (
-                  <table className="report-table">
-                    <thead>
-                      <tr>
-                        <th>تاریخ</th>
-                        <th>مبلغ (ریال)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.list.map(p => (
+                <table className="report-table">
+                  <thead>
+                    <tr>
+                      <th>تاریخ</th>
+                      <th>مبلغ (ریال)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.list.length > 0 ? (
+                      data.list.map(p => (
                         <tr key={p.id}>
                           <td>{formatDateInput(p.payment_date)}</td>
                           <td style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</td>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                ) : (
-                  <div className="empty-data">
-                    موردی ثبت نشده
-                  </div>
-                )}
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={2} className="empty-data-td">موردی ثبت نشده</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             );
           })}
