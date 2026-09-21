@@ -329,7 +329,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         .table th, .table td {
           padding: 12px 16px;
           border-bottom: 1px solid var(--line);
-          text-align: right;
+          text-align: center; /* تراز افقی وسط */
+          vertical-align: middle; /* تراز عمودی وسط */
           color: var(--text);
           font-size: 14px;
         }
