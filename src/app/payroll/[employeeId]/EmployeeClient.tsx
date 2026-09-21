@@ -215,7 +215,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
   // مرتب‌سازی ریاضی و قطعی تاریخ‌ها (از قدیمی به جدید)
   const sortedPayments = useMemo(() => {
     return [...payments].sort((a, b) => {
-      // تبدیل تاریخ به عدد خالص برای مقایسه دقیق (مثلاً ۱۴۰۵۰۶۲۹ -> 14050629)
       const dA = parseInt(toEnglishDigits(a.payment_date || "0").replace(/\D/g, ""), 10) || 0;
       const dB = parseInt(toEnglishDigits(b.payment_date || "0").replace(/\D/g, ""), 10) || 0;
       
@@ -371,9 +370,12 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           font-size: 14px;
         }
 
+        /* --- PRINT A4 STYLES --- */
         @media print {
           @page { size: A4 portrait; margin: 10mm; }
-          body, html {
+          
+          /* اجبار کردن تمام کانتینرهای صفحه به سفید شدن */
+          body, html, .payroll-container, .payroll-main {
             background-color: #fff !important;
             color: #000 !important;
             font-family: Vazirmatn, sans-serif !important;
@@ -381,13 +383,16 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             print-color-adjust: exact !important;
             margin: 0 !important;
             padding: 0 !important;
+            min-height: 0 !important;
           }
+          
           .no-print { display: none !important; }
           .print-only { 
             display: block !important; 
             width: 100% !important; 
             box-sizing: border-box !important;
             direction: rtl;
+            background-color: #fff !important;
           }
           
           .report-header {
@@ -406,10 +411,11 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-header p { 
             margin: 6px 0 0 0; 
             font-size: 14px; 
-            color: #333 !important; 
+            color: #000 !important; 
             text-align: center; 
           }
           
+          /* کادرهای بالا تماماً سفید با خطوط مشکی */
           .report-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -420,7 +426,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             border: 2px solid #000 !important;
             border-radius: 8px;
             padding: 12px;
-            background-color: #f3f4f6 !important;
+            background-color: #fff !important;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -435,6 +441,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-pos { color: #1a7f37 !important; }
           .report-neg { color: #d1242f !important; }
           
+          /* جداول پایین تماماً سفید */
           .report-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -453,7 +460,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           }
           
           .report-group-header {
-            background-color: #f1f5f9 !important;
+            background-color: #fff !important;
             border-bottom: 2px solid #000 !important; 
             padding: 10px 4px;
             display: flex;
@@ -467,7 +474,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           
           .flex-th {
             display: flex;
-            background: #f8fafc !important;
+            background: #fff !important;
             border-bottom: 2px solid #000 !important;
             height: 36px;
             align-items: stretch;
@@ -488,6 +495,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             display: flex;
             flex-direction: column;
             flex-grow: 1;
+            background: #fff !important;
           }
           .flex-tr {
             display: flex;
@@ -515,13 +523,15 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             padding: 20px;
             color: #555 !important;
             font-size: 12px;
+            background: #fff !important;
           }
           
+          /* فوتر تماماً سفید */
           .report-footer-box {
             border: 2px solid #000 !important;
             padding: 15px;
             border-radius: 8px;
-            background-color: #f3f4f6 !important;
+            background-color: #fff !important;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -594,7 +604,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                   </tr>
                 </thead>
                 <tbody>
-                  {/* رندر بر اساس لیست مرتب شده جدید */}
                   {sortedPayments.map((p, i) => (
                     <tr key={p.id} style={getRowStyle(p.payment_type)}>
                       <td>{toPersianDigits(i + 1)}</td>
