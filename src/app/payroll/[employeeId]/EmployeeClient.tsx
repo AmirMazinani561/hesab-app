@@ -466,7 +466,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             vertical-align: middle;
             color: #111 !important;
             padding: 20px !important;
-            border-bottom: none !important;
+            border-bottom: 1px solid #333 !important;
+            height: 100%;
           }
           
           .report-footer-box {

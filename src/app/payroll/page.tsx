@@ -103,7 +103,7 @@ export default async function PayrollPage() {
         .payroll-h2 {
           font-size: 24px;
           font-weight: bold;
-          color: #fff;
+          color: var(--text);
           margin-bottom: 16px;
         }
         .payroll-p {

@@ -156,7 +156,7 @@ export default function PayrollClient() {
         .emp-name {
           font-size: 16px;
           font-weight: bold;
-          color: #fff;
+          color: var(--text);
         }
         .emp-code {
           font-size: 12px;
