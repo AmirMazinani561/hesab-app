@@ -8,43 +8,143 @@ export default async function PayrollPage() {
     redirect("/equity"); // Redirect to existing login screen
   }
 
+  const styles = {
+    container: {
+      minHeight: "100vh",
+      backgroundColor: "#0d1117",
+      color: "#c9d1d9",
+      fontFamily: "Vazirmatn, sans-serif",
+      direction: "rtl" as const,
+      margin: 0,
+      padding: 0,
+    },
+    header: {
+      backgroundColor: "#161b22",
+      borderBottom: "1px solid #30363d",
+      padding: "16px 24px",
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    headerLeft: {
+      display: "flex",
+      alignItems: "center",
+      gap: "16px",
+    },
+    backBtn: {
+      backgroundColor: "#21262d",
+      color: "#c9d1d9",
+      border: "1px solid #30363d",
+      padding: "6px 12px",
+      borderRadius: "6px",
+      textDecoration: "none",
+      fontSize: "14px",
+      display: "flex",
+      alignItems: "center",
+      gap: "8px",
+      transition: "0.2s",
+    },
+    title: {
+      fontSize: "20px",
+      fontWeight: "bold",
+      color: "#c9d1d9",
+      margin: 0,
+      paddingRight: "16px",
+      borderRight: "1px solid #30363d",
+    },
+    userInfo: {
+      display: "flex",
+      gap: "16px",
+      alignItems: "center",
+    },
+    logoutBtn: {
+      backgroundColor: "#da3633",
+      color: "#fff",
+      border: "none",
+      padding: "6px 12px",
+      borderRadius: "6px",
+      cursor: "pointer",
+      fontWeight: "bold",
+      fontSize: "14px",
+    },
+    main: {
+      maxWidth: "1000px",
+      margin: "40px auto",
+      padding: "0 24px",
+    },
+    dashboardBlank: {
+      backgroundColor: "#161b22",
+      border: "1px solid #30363d",
+      borderRadius: "12px",
+      padding: "80px 24px",
+      textAlign: "center" as const,
+      display: "flex",
+      flexDirection: "column" as const,
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: "400px",
+    },
+    iconWrap: {
+      width: "80px",
+      height: "80px",
+      backgroundColor: "#0d1117",
+      border: "1px solid #30363d",
+      borderRadius: "50%",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: "24px",
+    },
+    h2: {
+      fontSize: "24px",
+      fontWeight: "bold",
+      color: "#fff",
+      marginBottom: "16px",
+    },
+    p: {
+      fontSize: "16px",
+      color: "#8b949e",
+      lineHeight: 1.8,
+      maxWidth: "500px",
+      margin: "0 auto",
+    }
+  };
+
   return (
-    <div dir="rtl" className="min-h-screen bg-slate-50 font-sans text-slate-900" style={{ fontFamily: "Vazirmatn, sans-serif" }}>
-      {/* Top Navigation */}
-      <header className="bg-white shadow-sm border-b px-6 py-4 flex justify-between items-center z-50 relative">
-        <div className="flex items-center gap-4">
-          <Link href="/" className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded transition-colors flex items-center gap-2 text-sm font-semibold">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <div style={styles.container}>
+      <header style={styles.header}>
+        <div style={styles.headerLeft}>
+          <Link href="/" style={styles.backBtn} onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#30363d'} onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#21262d'}>
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
             بازگشت به هاب
           </Link>
-          <h1 className="text-xl font-bold border-r pr-4 mr-2 border-slate-200">ماژول حقوق و دستمزد</h1>
+          <h1 style={styles.title}>ماژول حقوق و دستمزد</h1>
         </div>
-        <div className="flex gap-4 items-center">
-          <span className="text-sm text-slate-500">کاربر: {user.username}</span>
+        <div style={styles.userInfo}>
+          <span style={{ fontSize: "14px", color: "#8b949e" }}>کاربر: {user.username}</span>
           <form action={async () => {
             "use server";
             await signOut();
             redirect("/equity");
           }}>
-            <button type="submit" className="text-sm text-red-600 hover:text-red-700 font-bold px-3 py-1 bg-red-50 rounded transition-colors">
+            <button type="submit" style={styles.logoutBtn}>
               خروج
             </button>
           </form>
         </div>
       </header>
 
-      {/* Blank Dashboard Main */}
-      <main className="max-w-6xl mx-auto p-6 mt-6">
-        <div className="bg-white border border-slate-200 shadow-sm rounded-xl p-10 text-center min-h-[400px] flex flex-col items-center justify-center">
-          <div className="w-20 h-20 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mb-6">
-            <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <main style={styles.main}>
+        <div style={styles.dashboardBlank}>
+          <div style={styles.iconWrap}>
+            <svg width="40" height="40" fill="none" stroke="#8b949e" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-slate-700 mb-2">به زودی...</h2>
-          <p className="text-slate-500 max-w-md mx-auto leading-relaxed">
+          <h2 style={styles.h2}>به زودی...</h2>
+          <p style={styles.p}>
             ساختار پایه ماژول حقوق و دستمزد آماده شده است. فرم‌ها، جداول و امکانات مربوط به مدیریت پرسنل و کارکرد به زودی در این قسمت پیاده‌سازی خواهند شد.
           </p>
         </div>
