@@ -409,29 +409,41 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             overflow: hidden;
             box-sizing: border-box;
           }
+          
+          /* FIXED HEIGHT FOR ALIGNMENT */
           .report-group-title {
             background-color: #f1f5f9 !important;
             border-bottom: 1px solid #333;
-            padding: 8px 4px;
+            padding: 4px;
             font-weight: bold;
             font-size: 13px;
             text-align: center;
             color: #111 !important;
+            height: 52px; /* Force consistent height even if text wraps */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.4;
           }
           
-          /* Replaced Table with Flex Divs for perfect stretching */
+          /* FIXED HEIGHT FOR ALIGNMENT */
           .flex-th {
             display: flex;
             background: #f8fafc !important;
             border-bottom: 1px solid #333;
+            height: 32px; /* Force consistent height */
+            align-items: stretch;
           }
           .flex-th > div {
             flex: 1;
             text-align: center;
-            padding: 6px 2px;
             font-size: 12px;
             font-weight: bold;
             color: #111 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
           .flex-th > div:first-child {
             border-left: 1px solid #333;
@@ -444,7 +456,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           }
           .flex-tr {
             display: flex;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #ccc;
+            min-height: 30px;
           }
           .flex-tr:last-child {
             border-bottom: none;
@@ -655,7 +668,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             return (
               <div key={type} className="report-group-wrap">
                 <div className="report-group-title">
-                  جمع {type}: {formatRial(data.total.toString())}
+                  جمع {type}: <br/> {formatRial(data.total.toString())}
                 </div>
                 
                 <div className="flex-th">
