@@ -58,9 +58,14 @@ export async function POST(req: Request) {
     if (fromPartner && toPartner)
       return ok({ skipped: "internal-transfer" });
 
-    // پول به حساب سرمایه رفت ⇒ آورده (IN)
-    // پول از حساب سرمایه آمد ⇒ برداشت (OUT)
-    const kind: "IN" | "OUT" = toPartner ? "IN" : "OUT";
+    // پول از بانک به حساب شریک رفت ⇒ پرداخت به شریک / خروج وجه (OUT)
+    // پول از حساب شریک به بانک آمد ⇒ دریافت از شریک / ورود وجه (IN)
+    let kind: "IN" | "OUT" = toPartner ? "OUT" : "IN";
+
+    // پشتیبانی از ارسال صریح نوع تراکنش از طرف کیف پول
+    if (b.kind === "IN" || b.kind === "OUT") {
+      kind = b.kind;
+    }
     const partnerId = (toPartner || fromPartner) as string;
 
     /* --- شریک باید واقعاً وجود داشته باشد --- */
