@@ -24,8 +24,8 @@ const parseRial = (val: string) => {
 const formatDateInput = (val: string) => {
   const digits = val.replace(/\D/g, "");
   if (digits.length <= 4) return digits;
-  if (digits.length <= 6) return `${digits.slice(0,4)}/${digits.slice(4)}`;
-  return `${digits.slice(0,4)}/${digits.slice(4,6)}/${digits.slice(6,8)}`;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}/${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}/${digits.slice(4, 6)}/${digits.slice(6, 8)}`;
 };
 
 const cleanDate = (val: string) => val.replace(/\D/g, "");
@@ -195,7 +195,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
   // Calculations
   const calculated = useMemo(() => {
-    // Prev Month Calc
     let prevBal = BigInt(0);
     if (prevRecord) {
       const pSal = BigInt(prevRecord.base_salary_rial || 0);
@@ -204,14 +203,12 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
       prevBal = (pSal + pOtAmt) - prevPaymentsAmount;
     }
 
-    // Current Month Calc
     const cSal = BigInt(parseRial(baseSalary) || 0);
     const cOt = BigInt(Math.round(parseFloat(overtimeDays) || 0));
     const rawOtAmt = (cSal / BigInt(30)) * cOt;
     const cOtAmt = roundUp50k(rawOtAmt);
     
     const cPays = payments.reduce((acc, p) => acc + BigInt(p.amount_rial), BigInt(0));
-    
     const finalBalance = (prevBal + cSal + cOtAmt) - cPays;
 
     return {
@@ -235,10 +232,10 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
   const getRowStyle = (type: string) => {
     switch(type) {
-      case "پول نقد": return { backgroundColor: "rgba(26, 127, 55, 0.1)" }; // green
-      case "شارژ و اینترنت": return { backgroundColor: "rgba(9, 105, 218, 0.1)" }; // blue
-      case "خرید": return { backgroundColor: "rgba(180, 83, 9, 0.1)" }; // yellow/orange
-      case "حواله حساب": return { backgroundColor: "rgba(137, 87, 229, 0.1)" }; // purple
+      case "پول نقد": return { backgroundColor: "rgba(26, 127, 55, 0.1)" };
+      case "شارژ و اینترنت": return { backgroundColor: "rgba(9, 105, 218, 0.1)" };
+      case "خرید": return { backgroundColor: "rgba(180, 83, 9, 0.1)" };
+      case "حواله حساب": return { backgroundColor: "rgba(137, 87, 229, 0.1)" };
       default: return {};
     }
   };
@@ -346,7 +343,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
         /* --- PRINT A4 STYLES --- */
         @media print {
-          @page { size: A4 portrait; margin: 15mm; }
+          @page { size: A4 portrait; margin: 12mm 15mm !important; }
           body, html {
             background-color: #fff !important;
             color: #111 !important;
@@ -360,8 +357,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             width: 100% !important; 
             max-width: 100% !important; 
             box-sizing: border-box !important;
-            overflow: hidden !important;
-            margin: 0 !important;
+            margin: 0 auto !important;
             padding: 0 !important;
           }
           .payroll-header { display: none !important; }
@@ -370,28 +366,56 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             padding: 0 !important; 
             max-width: 100% !important; 
             width: 100% !important; 
-            box-sizing: border-box !important;
-            min-height: 0 !important;
             background: #fff !important;
           }
           
           .report-header {
             text-align: center;
-            border-bottom: 2px solid #333;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            border-bottom: 2px solid #222;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
             width: 100%;
+            box-sizing: border-box;
           }
-          .report-header h2 { margin: 0; font-size: 20px; color: #111 !important; text-align: center; }
-          .report-header p { margin: 5px 0 0 0; font-size: 14px; color: #333 !important; text-align: center; }
+          .report-header h2 { 
+            margin: 0; 
+            font-size: 19px; 
+            color: #111 !important; 
+            text-align: center;
+            padding: 0;
+          }
+          .report-header p { 
+            margin: 6px 0 0 0; 
+            font-size: 13px; 
+            color: #333 !important; 
+            text-align: center; 
+          }
           
           .report-grid-3 {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
             width: 100%;
           }
+          .report-box {
+            border: 1.5px solid #333;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            background-color: #f8fafc !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 78px;
+          }
+          .report-box-title { font-size: 12.5px; font-weight: 600; margin-bottom: 6px; color: #333 !important; }
+          .report-box-value { font-size: 17px; font-weight: 700; color: #111 !important; }
+          .report-pos { color: #1a7f37 !important; }
+          .report-neg { color: #d1242f !important; }
+
+          /* ساختار تراز شده ردیف دوم */
           .report-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -400,93 +424,101 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             align-items: stretch;
             width: 100%;
           }
-          .report-box {
-            border: 1px solid #333;
-            border-radius: 6px;
-            padding: 12px;
-            text-align: center;
-            background-color: #f3f4f6 !important;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-          }
-          .report-box-title { font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #111 !important; text-align: center; }
-          .report-box-value { font-size: 18px; font-weight: bold; color: #111 !important; text-align: center; }
-          
-          .report-pos { color: #1a7f37 !important; } /* Green */
-          .report-neg { color: #d1242f !important; } /* Red */
-          
           .report-group-wrap {
-            margin-bottom: 0;
-            page-break-inside: avoid;
             display: flex;
             flex-direction: column;
             height: 100%;
-            border: 1px solid #333;
+            border: 1.5px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #fff;
             box-sizing: border-box;
           }
           .report-group-title {
-            background-color: #f3f4f6 !important;
-            border-bottom: 1px solid #333;
-            padding: 8px 12px;
-            font-weight: bold;
-            font-size: 14px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #111 !important;
+            background-color: #f1f5f9 !important;
+            border-bottom: 1.5px solid #333;
+            padding: 8px 4px;
+            font-weight: 700;
+            font-size: 13px;
             text-align: center;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #111 !important;
           }
           .report-table {
             width: 100%;
             border-collapse: collapse;
-            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
             height: 100%;
           }
-          .report-table th, .report-table td {
-            border: 1px solid #333;
-            padding: 6px 10px;
-            text-align: center;
-            font-size: 12px;
-            color: #111 !important;
-            border-left: none;
-            border-right: none;
+          .report-table thead, .report-table tbody {
+            width: 100%;
           }
-          .report-table tr:first-child th, .report-table tr:first-child td {
-            border-top: none;
+          .report-table thead tr {
+            display: flex;
+            width: 100%;
+            background-color: #f8fafc !important;
+            border-bottom: 1.5px solid #333;
+            height: 28px;
           }
-          .report-table tr:last-child th, .report-table tr:last-child td {
+          .report-table tbody {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 auto;
+          }
+          .report-table tbody tr {
+            display: flex;
+            width: 100%;
+            border-bottom: 1px solid #e2e8f0;
+          }
+          .report-table tbody tr:last-child {
             border-bottom: none;
           }
-          .report-table th { background-color: #f3f4f6 !important; color: #111 !important; text-align: center; }
-          
-          .empty-data-td {
-            text-align: center !important;
-            vertical-align: middle !important;
+          .report-table th, .report-table td {
+            padding: 5px 2px;
+            text-align: center;
+            font-size: 11.5px;
             color: #111 !important;
-            padding: 20px !important;
-            border-bottom: 1px solid #333 !important;
-            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .report-table th:first-child, .report-table td:first-child {
+            flex: 1.1;
+            border-left: 1px solid #333;
+          }
+          .report-table th:last-child, .report-table td:last-child {
+            flex: 1.3;
+          }
+          
+          .report-table tbody tr.empty-row {
+            flex: 1 1 auto;
+            border-bottom: none;
+          }
+          .empty-data-td {
+            width: 100% !important;
+            flex: 1 1 auto !important;
+            border: none !important;
+            color: #64748b !important;
+            font-size: 12px;
           }
           
           .report-footer-box {
             border: 2px solid #333;
-            padding: 15px;
+            padding: 14px;
             text-align: center;
-            margin-top: 30px;
             border-radius: 8px;
-            background-color: #f3f4f6 !important;
+            background-color: #f8fafc !important;
             page-break-inside: avoid;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
             width: 100%;
             box-sizing: border-box;
           }
-          .report-footer-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111 !important; text-align: center; }
-          .report-footer-val { font-size: 24px; font-weight: bold; text-align: center; }
+          .report-footer-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: #333 !important; }
+          .report-footer-val { font-size: 22px; font-weight: 800; }
         }
         @media screen {
           .print-only { display: none !important; }
@@ -655,7 +687,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           {PAYMENT_TYPES.map(type => {
             const data = groupedPayments[type] || { total: 0n, list: [] };
             return (
-              <div key={type} className="report-group-wrap" style={{ marginBottom: 0 }}>
+              <div key={type} className="report-group-wrap">
                 <div className="report-group-title">
                   <span>جمع {type}: {formatRial(data.total.toString())}</span>
                 </div>
@@ -675,7 +707,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                         </tr>
                       ))
                     ) : (
-                      <tr>
+                      <tr className="empty-row">
                         <td colSpan={2} className="empty-data-td">موردی ثبت نشده</td>
                       </tr>
                     )}
