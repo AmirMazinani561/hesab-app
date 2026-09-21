@@ -212,6 +212,15 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     }
   };
 
+  // مرتب‌سازی تراکنش‌ها بر اساس تاریخ (از قدیمی به جدید)
+  const sortedPayments = useMemo(() => {
+    return [...payments].sort((a, b) => {
+      const dateA = a.payment_date || "";
+      const dateB = b.payment_date || "";
+      return dateA.localeCompare(dateB);
+    });
+  }, [payments]);
+
   const calculated = useMemo(() => {
     let prevBal = BigInt(0);
     if (prevRecord) {
@@ -227,21 +236,22 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     const rawOtAmt = (cSal / BigInt(30)) * cOt;
     const cOtAmt = roundUp50k(rawOtAmt);
     
-    const cPays = payments.reduce((acc, p) => acc + BigInt(p.amount_rial), BigInt(0));
+    const cPays = sortedPayments.reduce((acc, p) => acc + BigInt(p.amount_rial), BigInt(0));
     const finalBalance = (prevBal + cSal + cOtAmt) - cPays;
 
     return { prevBal, cSal, cOtAmt, cPays, finalBalance };
-  }, [prevRecord, prevPaymentsAmount, baseSalary, overtimeDays, payments]);
+  }, [prevRecord, prevPaymentsAmount, baseSalary, overtimeDays, sortedPayments]);
 
   const groupedPayments = useMemo(() => {
     const groups: Record<string, { total: bigint, list: Payment[] }> = {};
-    payments.forEach(p => {
+    // از لیست مرتب شده برای گروه‌بندی چاپ استفاده می‌کنیم
+    sortedPayments.forEach(p => {
       if (!groups[p.payment_type]) groups[p.payment_type] = { total: BigInt(0), list: [] };
       groups[p.payment_type].total += BigInt(p.amount_rial);
       groups[p.payment_type].list.push(p);
     });
     return groups;
-  }, [payments]);
+  }, [sortedPayments]);
 
   const getRowStyle = (type: string) => {
     switch(type) {
@@ -329,8 +339,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         .table th, .table td {
           padding: 12px 16px;
           border-bottom: 1px solid var(--line);
-          text-align: center; /* تراز افقی وسط */
-          vertical-align: middle; /* تراز عمودی وسط */
+          text-align: center;
+          vertical-align: middle;
           color: var(--text);
           font-size: 14px;
         }
@@ -578,7 +588,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.map((p, i) => (
+                  {/* از لیست مرتب شده استفاده می‌شود */}
+                  {sortedPayments.map((p, i) => (
                     <tr key={p.id} style={getRowStyle(p.payment_type)}>
                       <td>{toPersianDigits(i + 1)}</td>
                       <td>{formatDateInput(p.payment_date)}</td>
@@ -590,7 +601,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                       </td>
                     </tr>
                   ))}
-                  {payments.length === 0 && (
+                  {sortedPayments.length === 0 && (
                     <tr>
                       <td colSpan={6} style={{ textAlign: "center", color: "var(--mut)" }}>هیچ پرداختی در این ماه ثبت نشده است.</td>
                     </tr>
