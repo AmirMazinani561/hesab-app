@@ -346,88 +346,136 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
         /* --- PRINT A4 STYLES --- */
         @media print {
-          @page { size: A4; margin: 15mm; }
+          @page { size: A4 portrait; margin: 15mm; }
           body, html {
             background-color: #fff !important;
-            color: #000 !important;
+            color: #111 !important;
             font-family: Vazirmatn, sans-serif !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           .no-print { display: none !important; }
-          .print-only { display: block !important; }
+          .print-only { 
+            display: block !important; 
+            width: 100% !important; 
+            max-width: none !important; 
+            box-sizing: border-box; 
+          }
           .payroll-header { display: none !important; }
-          .payroll-main { margin: 0 !important; padding: 0 !important; max-width: none !important; }
+          .payroll-main { margin: 0 !important; padding: 0 !important; max-width: none !important; width: 100% !important; box-sizing: border-box; }
           
           .report-header {
             text-align: center;
-            border-bottom: 2px solid #000;
+            border-bottom: 2px solid #333;
             padding-bottom: 10px;
             margin-bottom: 20px;
+            width: 100%;
           }
-          .report-header h2 { margin: 0; font-size: 20px; }
-          .report-header p { margin: 5px 0 0 0; font-size: 14px; color: #555 !important; }
+          .report-header h2 { margin: 0; font-size: 20px; color: #111 !important; text-align: center; }
+          .report-header p { margin: 5px 0 0 0; font-size: 14px; color: #333 !important; text-align: center; }
           
           .report-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
             gap: 15px;
             margin-bottom: 20px;
+            width: 100%;
           }
           .report-grid-4 {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-bottom: 20px;
-            align-items: start;
+            align-items: stretch;
+            width: 100%;
           }
           .report-box {
-            border: 1px solid #000;
+            border: 1px solid #333;
             border-radius: 6px;
             padding: 12px;
             text-align: center;
-            background-color: #f9f9f9 !important;
+            background-color: #f3f4f6 !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
           }
-          .report-box-title { font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #333 !important; }
-          .report-box-value { font-size: 18px; font-weight: bold; }
+          .report-box-title { font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #111 !important; text-align: center; }
+          .report-box-value { font-size: 18px; font-weight: bold; color: #111 !important; text-align: center; }
           
           .report-pos { color: #1a7f37 !important; } /* Green */
           .report-neg { color: #d1242f !important; } /* Red */
           
           .report-group-wrap {
-            margin-bottom: 15px;
+            margin-bottom: 0;
             page-break-inside: avoid;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            border: 1px solid #333;
+            box-sizing: border-box;
           }
           .report-group-title {
-            background-color: #eaeaea !important;
-            border: 1px solid #000;
-            border-bottom: none;
+            background-color: #f3f4f6 !important;
+            border-bottom: 1px solid #333;
             padding: 8px 12px;
             font-weight: bold;
             font-size: 14px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
+            align-items: center;
+            color: #111 !important;
+            text-align: center;
           }
           .report-table {
             width: 100%;
             border-collapse: collapse;
           }
           .report-table th, .report-table td {
-            border: 1px solid #000;
+            border: 1px solid #333;
             padding: 6px 10px;
-            text-align: right;
+            text-align: center;
             font-size: 12px;
+            color: #111 !important;
+            border-left: none;
+            border-right: none;
           }
-          .report-table th { background-color: #f0f0f0 !important; }
+          .report-table tr:first-child th, .report-table tr:first-child td {
+            border-top: none;
+          }
+          .report-table tr:last-child th, .report-table tr:last-child td {
+            border-bottom: none;
+          }
+          .report-table th { background-color: #f3f4f6 !important; color: #111 !important; text-align: center; }
+          
+          .empty-data {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            color: #111 !important;
+            text-align: center;
+            padding: 10px;
+          }
           
           .report-footer-box {
-            border: 2px solid #000;
+            border: 2px solid #333;
             padding: 15px;
             text-align: center;
             margin-top: 30px;
             border-radius: 8px;
-            background-color: #f5f5f5 !important;
+            background-color: #f3f4f6 !important;
             page-break-inside: avoid;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+          }
+          .report-footer-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111 !important; text-align: center; }
+          .report-footer-val { font-size: 24px; font-weight: bold; text-align: center; }
           }
           .report-footer-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
           .report-footer-val { font-size: 24px; font-weight: bold; }
@@ -600,7 +648,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             const data = groupedPayments[type] || { total: 0n, list: [] };
             return (
               <div key={type} className="report-group-wrap" style={{ marginBottom: 0 }}>
-                <div className="report-group-title" style={{ justifyContent: "center", borderBottom: "1px solid #000" }}>
+                <div className="report-group-title">
                   <span>جمع {type}: {formatRial(data.total.toString())}</span>
                 </div>
                 {data.list.length > 0 ? (
@@ -614,14 +662,14 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                     <tbody>
                       {data.list.map(p => (
                         <tr key={p.id}>
-                          <td style={{textAlign: "center"}}>{formatDateInput(p.payment_date)}</td>
+                          <td>{formatDateInput(p.payment_date)}</td>
                           <td style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 ) : (
-                  <div style={{ border: "1px solid #000", borderTop: "none", padding: "10px", textAlign: "center", fontSize: "12px", color: "#555" }}>
+                  <div className="empty-data">
                     موردی ثبت نشده
                   </div>
                 )}
