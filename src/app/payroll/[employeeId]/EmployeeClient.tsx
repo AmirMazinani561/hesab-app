@@ -352,7 +352,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           
           .report-header {
             text-align: center;
-            border-bottom: 2px solid #222;
+            border-bottom: 2px solid #111;
             padding-bottom: 10px;
             margin-bottom: 20px;
             width: 100%;
@@ -370,6 +370,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             text-align: center; 
           }
           
+          /* Three Top Boxes (Perfectly Centered 3 Lines) */
           .report-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -377,22 +378,25 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             margin-bottom: 20px;
           }
           .report-box {
-            border: 1px solid #333;
-            border-radius: 6px;
+            border: 1.5px solid #111 !important;
+            border-radius: 8px;
             padding: 12px;
             background-color: #f3f4f6 !important;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            height: 110px; /* Fixed height to ensure uniform grid */
+            box-sizing: border-box;
           }
-          .report-box-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #111 !important; }
-          .report-box-value { font-size: 18px; font-weight: bold; color: #111 !important; }
+          .report-box-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #111 !important; text-align: center; }
+          .report-box-value { font-size: 20px; font-weight: bold; color: #111 !important; margin-bottom: 6px; text-align: center; line-height: 1.1; }
+          .report-box-sub { font-size: 13px; color: #444 !important; text-align: center; }
           
           .report-pos { color: #1a7f37 !important; }
           .report-neg { color: #d1242f !important; }
           
-          /* The Magic Flex Grid for Equal Heights */
+          /* The 4-Column Grid for Payments */
           .report-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -403,36 +407,33 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-group-wrap {
             display: flex;
             flex-direction: column;
-            border: 1px solid #333;
-            border-radius: 6px;
+            border: 1.5px solid #111 !important;
+            border-radius: 8px;
             background: #fff !important;
             overflow: hidden;
             box-sizing: border-box;
           }
           
-          /* FIXED HEIGHT FOR ALIGNMENT */
-          .report-group-title {
+          /* Title & Amount Header inside the 4-box */
+          .report-group-header {
             background-color: #f1f5f9 !important;
-            border-bottom: 1px solid #333;
-            padding: 4px;
-            font-weight: bold;
-            font-size: 13px;
-            text-align: center;
-            color: #111 !important;
-            height: 52px; /* Force consistent height even if text wraps */
+            border-bottom: 1.5px solid #111 !important;
+            padding: 10px 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            line-height: 1.4;
+            height: 70px; /* Locked height so all 4 boxes match exactly */
           }
+          .rg-title { font-size: 13px; font-weight: bold; color: #111 !important; text-align: center; }
+          .rg-amount { font-size: 15px; font-weight: bold; color: #111 !important; margin-top: 6px; text-align: center; }
           
-          /* FIXED HEIGHT FOR ALIGNMENT */
+          /* Table Headers */
           .flex-th {
             display: flex;
             background: #f8fafc !important;
-            border-bottom: 1px solid #333;
-            height: 32px; /* Force consistent height */
+            border-bottom: 1.5px solid #111 !important;
+            height: 36px;
             align-items: stretch;
           }
           .flex-th > div {
@@ -446,9 +447,10 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             justify-content: center;
           }
           .flex-th > div:first-child {
-            border-left: 1px solid #333;
+            border-left: 1.5px solid #111 !important;
           }
           
+          /* Table Body */
           .flex-tbody {
             display: flex;
             flex-direction: column;
@@ -457,7 +459,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .flex-tr {
             display: flex;
             border-bottom: 1px solid #ccc;
-            min-height: 30px;
+            min-height: 34px;
           }
           .flex-tr:last-child {
             border-bottom: none;
@@ -473,9 +475,10 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             justify-content: center;
           }
           .flex-tr > div:first-child {
-            border-left: 1px solid #333;
+            border-left: 1.5px solid #111 !important;
           }
           
+          /* Empty State perfectly expanding */
           .flex-empty {
             display: flex;
             align-items: center;
@@ -486,8 +489,9 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             font-size: 12px;
           }
           
+          /* Footer */
           .report-footer-box {
-            border: 2px solid #333;
+            border: 2px solid #111;
             padding: 15px;
             border-radius: 8px;
             background-color: #f3f4f6 !important;
@@ -630,7 +634,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         )}
       </div>
 
-      {/* --- A4 PRINT UI (REBUILT WITH FLEXBOX FOR EQUAL HEIGHTS) --- */}
+      {/* --- A4 PRINT UI --- */}
       <div className="print-only">
         <div className="report-header">
           <h2>فیش حقوقی و صورت‌وضعیت پرسنل</h2>
@@ -644,31 +648,32 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         <div className="report-grid-3">
           <div className="report-box">
             <div className="report-box-title">حقوق ماه</div>
-            <div className="report-box-value">{formatRial(calculated.cSal.toString())} ریال</div>
+            <div className="report-box-value">{formatRial(calculated.cSal.toString())}</div>
+            <div className="report-box-sub">ریال</div>
           </div>
           <div className="report-box">
             <div className="report-box-title">مانده ماه قبل</div>
             <div className={`report-box-value ${calculated.prevBal < 0n ? "report-neg" : "report-pos"}`}>
-              {calculated.prevBal < 0n ? "-" : ""}{formatRial(calculated.prevBal < 0n ? (-calculated.prevBal).toString() : calculated.prevBal.toString())} ریال
-              <span style={{fontSize: "12px", marginRight: "8px", fontWeight: "normal"}}>
-                {calculated.prevBal < 0n ? "(بدهکار)" : "(بستانکار)"}
-              </span>
+              {calculated.prevBal < 0n ? "-" : ""}{formatRial(calculated.prevBal < 0n ? (-calculated.prevBal).toString() : calculated.prevBal.toString())}
             </div>
+            <div className="report-box-sub">ریال {calculated.prevBal < 0n ? "(بدهکار)" : "(بستانکار)"}</div>
           </div>
           <div className="report-box">
             <div className="report-box-title">اضافه‌کار ({overtimeDays || "0"} روز)</div>
-            <div className="report-box-value">{formatRial(calculated.cOtAmt.toString())} ریال</div>
+            <div className="report-box-value">{formatRial(calculated.cOtAmt.toString())}</div>
+            <div className="report-box-sub">ریال</div>
           </div>
         </div>
 
-        {/* Row 2 & 3: Payment Summaries & Details (Using Flexbox instead of Table) */}
+        {/* Row 2 & 3: Payment Summaries & Details */}
         <div className="report-grid-4">
           {PAYMENT_TYPES.map(type => {
             const data = groupedPayments[type] || { total: 0n, list: [] };
             return (
               <div key={type} className="report-group-wrap">
-                <div className="report-group-title">
-                  جمع {type}: <br/> {formatRial(data.total.toString())}
+                <div className="report-group-header">
+                  <div className="rg-title">جمع {type}:</div>
+                  <div className="rg-amount">{formatRial(data.total.toString()) || "0"}</div>
                 </div>
                 
                 <div className="flex-th">
