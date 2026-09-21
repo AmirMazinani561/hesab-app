@@ -9,6 +9,12 @@ type Employee = {
   name: string;
 };
 
+const toPersianDigits = (str: string | number) => {
+  if (str === null || str === undefined) return "";
+  const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
+  return str.toString().replace(/\d/g, (x) => persianDigits[parseInt(x)]);
+};
+
 export default function PayrollClient() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
@@ -95,10 +101,10 @@ export default function PayrollClient() {
         }
         .form-input:focus {
           outline: none;
-          border-color: #58a6ff;
+          border-color: #0969da;
         }
         .form-btn {
-          background-color: #238636;
+          background-color: #1a7f37;
           color: #fff;
           border: 1px solid rgba(240, 246, 252, 0.1);
           border-radius: 6px;
@@ -159,7 +165,7 @@ export default function PayrollClient() {
           color: var(--text);
         }
         .emp-code {
-          font-size: 12px;
+          font-size: 13px;
           color: var(--mut);
         }
         .loading {
@@ -204,7 +210,7 @@ export default function PayrollClient() {
                   </div>
                   <div className="emp-info">
                     <span className="emp-name">{emp.name}</span>
-                    <span className="emp-code">کد پرسنلی: {emp.code}</span>
+                    <span className="emp-code">کد پرسنلی: {toPersianDigits(emp.code)}</span>
                   </div>
                 </Link>
               ))}

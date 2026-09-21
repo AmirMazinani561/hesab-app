@@ -11,23 +11,46 @@ const MONTHS = [
 
 const PAYMENT_TYPES = ["پول نقد", "شارژ و اینترنت", "خرید", "حواله حساب"];
 
+// توابع هوشمند تبدیل اعداد فارسی و انگلیسی
+const toPersianDigits = (str: string | number) => {
+  if (str === null || str === undefined) return "";
+  const persianDigits = ["۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹"];
+  return str.toString().replace(/\d/g, (x) => persianDigits[parseInt(x)]);
+};
+
+const toEnglishDigits = (str: string) => {
+  if (!str) return "";
+  const persianToEnglishMap: Record<string, string> = {
+    "۰": "0", "۱": "1", "۲": "2", "۳": "3", "۴": "4", "۵": "5", "۶": "6", "۷": "7", "۸": "8", "۹": "9",
+    "٠": "0", "١": "1", "٢": "2", "٣": "3", "٤": "4", "٥": "5", "٦": "6", "٧": "7", "٨": "8", "٩": "9"
+  };
+  return str.replace(/[۰-۹٠-٩]/g, match => persianToEnglishMap[match]);
+};
+
 const formatRial = (val: string | number) => {
   if (!val) return "";
-  return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  const enVal = val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return toPersianDigits(enVal);
 };
 
 const parseRial = (val: string) => {
-  return val.replace(/,/g, "").replace(/\D/g, "");
+  const enVal = toEnglishDigits(val);
+  return enVal.replace(/,/g, "").replace(/\D/g, "");
 };
 
 const formatDateInput = (val: string) => {
-  const digits = val.replace(/\D/g, "");
-  if (digits.length <= 4) return digits;
-  if (digits.length <= 6) return `${digits.slice(0, 4)}/${digits.slice(4)}`;
-  return `${digits.slice(0, 4)}/${digits.slice(4, 6)}/${digits.slice(6, 8)}`;
+  const enVal = toEnglishDigits(val);
+  const digits = enVal.replace(/\D/g, "");
+  let formatted = digits;
+  if (digits.length > 4 && digits.length <= 6) {
+    formatted = `${digits.slice(0, 4)}/${digits.slice(4)}`;
+  } else if (digits.length > 6) {
+    formatted = `${digits.slice(0, 4)}/${digits.slice(4, 6)}/${digits.slice(6, 8)}`;
+  }
+  return toPersianDigits(formatted);
 };
 
-const cleanDate = (val: string) => val.replace(/\D/g, "");
+const cleanDate = (val: string) => toEnglishDigits(val).replace(/\D/g, "");
 
 const roundUp50k = (val: bigint) => {
   if (val === 0n) return 0n;
@@ -124,7 +147,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           year,
           month,
           baseSalaryRial: parseRial(baseSalary) || "0",
-          overtimeDays: parseFloat(overtimeDays) || 0
+          overtimeDays: parseFloat(toEnglishDigits(overtimeDays)) || 0
         }),
       });
       if (res.ok) {
@@ -199,7 +222,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     }
 
     const cSal = BigInt(parseRial(baseSalary) || 0);
-    const cOt = BigInt(Math.round(parseFloat(overtimeDays) || 0));
+    const otValue = parseFloat(toEnglishDigits(overtimeDays)) || 0;
+    const cOt = BigInt(Math.round(otValue));
     const rawOtAmt = (cSal / BigInt(30)) * cOt;
     const cOtAmt = roundUp50k(rawOtAmt);
     
@@ -330,7 +354,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           font-size: 14px;
         }
 
-        /* --- PRINT A4 STYLES --- */
         @media print {
           @page { size: A4 portrait; margin: 10mm; }
           body, html {
@@ -366,11 +389,10 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-header p { 
             margin: 6px 0 0 0; 
             font-size: 14px; 
-            color: #000 !important; 
+            color: #333 !important; 
             text-align: center; 
           }
           
-          /* Three Top Boxes */
           .report-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -396,7 +418,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-pos { color: #1a7f37 !important; }
           .report-neg { color: #d1242f !important; }
           
-          /* The 4-Column Grid for Payments */
           .report-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -414,21 +435,19 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             box-sizing: border-box;
           }
           
-          /* Title & Amount Header inside the 4-box - FIXED LINE & HEIGHT */
           .report-group-header {
             background-color: #f1f5f9 !important;
-            border-bottom: 2px solid #000 !important; /* خط جداکننده قطعی و ضخیم */
+            border-bottom: 2px solid #000 !important; 
             padding: 10px 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 70px; /* ارتفاع ثابت برای تراز شدن هر ۴ ستون */
+            height: 70px; 
           }
           .rg-title { font-size: 13px; font-weight: bold; color: #000 !important; text-align: center; }
           .rg-amount { font-size: 15px; font-weight: bold; color: #000 !important; margin-top: 6px; text-align: center; }
           
-          /* Table Headers */
           .flex-th {
             display: flex;
             background: #f8fafc !important;
@@ -446,11 +465,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             align-items: center;
             justify-content: center;
           }
-          .flex-th > div:first-child {
-            border-left: 1px solid #000 !important;
-          }
+          .flex-th > div:first-child { border-left: 1px solid #000 !important; }
           
-          /* Table Body */
           .flex-tbody {
             display: flex;
             flex-direction: column;
@@ -461,9 +477,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             border-bottom: 1px solid #000 !important;
             min-height: 34px;
           }
-          .flex-tr:last-child {
-            border-bottom: none !important;
-          }
+          .flex-tr:last-child { border-bottom: none !important; }
           .flex-tr > div {
             flex: 1;
             text-align: center;
@@ -474,11 +488,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             align-items: center;
             justify-content: center;
           }
-          .flex-tr > div:first-child {
-            border-left: 1px solid #000 !important;
-          }
+          .flex-tr > div:first-child { border-left: 1px solid #000 !important; }
           
-          /* Empty State */
           .flex-empty {
             display: flex;
             align-items: center;
@@ -489,7 +500,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             font-size: 12px;
           }
           
-          /* Footer */
           .report-footer-box {
             border: 2px solid #000 !important;
             padding: 15px;
@@ -513,7 +523,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         <div className="filters">
           <div className="filters-left">
             <select className="filter-select" value={year} onChange={e => setYear(Number(e.target.value))}>
-              {[1405, 1406, 1407, 1408, 1409].map(y => <option key={y} value={y}>سال {y}</option>)}
+              {[1405, 1406, 1407, 1408, 1409].map(y => <option key={y} value={y}>سال {toPersianDigits(y)}</option>)}
             </select>
             <select className="filter-select" value={month} onChange={e => setMonth(Number(e.target.value))}>
               {MONTHS.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
@@ -539,7 +549,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                   className="box-input"
                   value={formatRial(baseSalary)}
                   onChange={e => setBaseSalary(parseRial(e.target.value))}
-                  placeholder="مثلاً 100,000,000"
+                  placeholder="مثلاً ۱۰۰,۰۰۰,۰۰۰"
                 />
                 <button className="save-btn" onClick={saveRecord} disabled={saving}>
                   {saving ? "در حال ذخیره..." : "ذخیره تغییرات ماه"}
@@ -569,7 +579,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                 <tbody>
                   {payments.map((p, i) => (
                     <tr key={p.id} style={getRowStyle(p.payment_type)}>
-                      <td>{i + 1}</td>
+                      <td>{toPersianDigits(i + 1)}</td>
                       <td>{formatDateInput(p.payment_date)}</td>
                       <td>{p.payment_type}</td>
                       <td>{p.description}</td>
@@ -588,7 +598,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
               </table>
               
               <form className="add-pay-form" onSubmit={handleAddPayment}>
-                <input required type="text" className="pay-input" placeholder="تاریخ (مثلاً 1405/01/10)" value={payDate} onChange={handlePayDateChange} style={{ width: 140 }} />
+                <input required type="text" className="pay-input" placeholder="تاریخ (مثلاً ۱۴۰۵/۰۱/۱۰)" value={payDate} onChange={handlePayDateChange} style={{ width: 140 }} />
                 <select className="pay-input" value={payType} onChange={e => setPayType(e.target.value)}>
                   {PAYMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
@@ -604,12 +614,15 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
               <div className="box">
                 <div className="box-title">تعداد روزهای اضافه‌کار</div>
                 <input 
-                  type="number"
-                  step="0.5"
+                  type="text"
+                  inputMode="decimal"
                   className="box-input"
-                  value={overtimeDays}
-                  onChange={e => setOvertimeDays(e.target.value)}
-                  placeholder="مثلاً 2.5"
+                  value={toPersianDigits(overtimeDays)}
+                  onChange={e => {
+                    const enVal = toEnglishDigits(e.target.value).replace(/[٫/]/g, ".").replace(/[^0-9.]/g, "");
+                    setOvertimeDays(enVal);
+                  }}
+                  placeholder="مثلاً ۲.۵"
                 />
                 <button className="save-btn" onClick={saveRecord} disabled={saving}>ذخیره</button>
               </div>
@@ -634,17 +647,16 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         )}
       </div>
 
-      {/* --- A4 PRINT UI (REBUILT WITH FLEXBOX FOR EQUAL HEIGHTS) --- */}
+      {/* --- A4 PRINT UI --- */}
       <div className="print-only">
         <div className="report-header">
           <h2>فیش حقوقی و صورت‌وضعیت پرسنل</h2>
           <p>
             {employeeName ? `نام پرسنل: ${employeeName} | ` : ""}
-            دوره: {MONTHS[month - 1]} سال {year}
+            دوره: {MONTHS[month - 1]} سال {toPersianDigits(year)}
           </p>
         </div>
 
-        {/* Row 1: Income & Balances */}
         <div className="report-grid-3">
           <div className="report-box">
             <div className="report-box-title">حقوق ماه</div>
@@ -659,31 +671,27 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             <div className="report-box-sub">ریال {calculated.prevBal < 0n ? "(بدهکار)" : "(بستانکار)"}</div>
           </div>
           <div className="report-box">
-            <div className="report-box-title">اضافه‌کار ({overtimeDays || "0"} روز)</div>
+            <div className="report-box-title">اضافه‌کار ({toPersianDigits(overtimeDays || "0")} روز)</div>
             <div className="report-box-value">{formatRial(calculated.cOtAmt.toString())}</div>
             <div className="report-box-sub">ریال</div>
           </div>
         </div>
 
-        {/* Row 2 & 3: Payment Summaries & Details (Using Flexbox instead of Table) */}
         <div className="report-grid-4">
           {PAYMENT_TYPES.map(type => {
             const data = groupedPayments[type] || { total: 0n, list: [] };
             return (
               <div key={type} className="report-group-wrap">
-                {/* Header Section */}
                 <div className="report-group-header">
                   <div className="rg-title">جمع {type}:</div>
-                  <div className="rg-amount">{formatRial(data.total.toString()) || "0"}</div>
+                  <div className="rg-amount">{formatRial(data.total.toString()) || "۰"}</div>
                 </div>
                 
-                {/* Table Headers */}
                 <div className="flex-th">
                   <div>تاریخ</div>
                   <div>مبلغ (ریال)</div>
                 </div>
                 
-                {/* Table Body */}
                 <div className="flex-tbody">
                   {data.list.length > 0 ? (
                     data.list.map(p => (
@@ -701,7 +709,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           })}
         </div>
 
-        {/* Row 4: Final Result */}
         <div className="report-footer-box">
           <div className="report-footer-title">مانده نهایی ماه</div>
           <div className={`report-footer-val ${calculated.finalBalance < 0n ? "report-neg" : "report-pos"}`}>
