@@ -212,12 +212,17 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     }
   };
 
-  // مرتب‌سازی تراکنش‌ها بر اساس تاریخ (از قدیمی به جدید)
+  // مرتب‌سازی ریاضی و قطعی تاریخ‌ها (از قدیمی به جدید)
   const sortedPayments = useMemo(() => {
     return [...payments].sort((a, b) => {
-      const dateA = a.payment_date || "";
-      const dateB = b.payment_date || "";
-      return dateA.localeCompare(dateB);
+      // تبدیل تاریخ به عدد خالص برای مقایسه دقیق (مثلاً ۱۴۰۵۰۶۲۹ -> 14050629)
+      const dA = parseInt(toEnglishDigits(a.payment_date || "0").replace(/\D/g, ""), 10) || 0;
+      const dB = parseInt(toEnglishDigits(b.payment_date || "0").replace(/\D/g, ""), 10) || 0;
+      
+      if (dA !== dB) {
+        return dA - dB;
+      }
+      return (a.id || "").localeCompare(b.id || "");
     });
   }, [payments]);
 
@@ -236,6 +241,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     const rawOtAmt = (cSal / BigInt(30)) * cOt;
     const cOtAmt = roundUp50k(rawOtAmt);
     
+    // استفاده از لیست مرتب‌شده برای محاسبه
     const cPays = sortedPayments.reduce((acc, p) => acc + BigInt(p.amount_rial), BigInt(0));
     const finalBalance = (prevBal + cSal + cOtAmt) - cPays;
 
@@ -244,7 +250,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
   const groupedPayments = useMemo(() => {
     const groups: Record<string, { total: bigint, list: Payment[] }> = {};
-    // از لیست مرتب شده برای گروه‌بندی چاپ استفاده می‌کنیم
+    // گروه‌بندی از روی لیست مرتب‌شده انجام می‌شود تا در پرینت هم تاریخ‌ها مرتب باشند
     sortedPayments.forEach(p => {
       if (!groups[p.payment_type]) groups[p.payment_type] = { total: BigInt(0), list: [] };
       groups[p.payment_type].total += BigInt(p.amount_rial);
@@ -588,7 +594,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                   </tr>
                 </thead>
                 <tbody>
-                  {/* از لیست مرتب شده استفاده می‌شود */}
+                  {/* رندر بر اساس لیست مرتب شده جدید */}
                   {sortedPayments.map((p, i) => (
                     <tr key={p.id} style={getRowStyle(p.payment_type)}>
                       <td>{toPersianDigits(i + 1)}</td>
