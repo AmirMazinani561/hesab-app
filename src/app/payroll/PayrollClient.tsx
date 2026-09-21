@@ -135,7 +135,7 @@ export default function PayrollClient() {
         }
         .emp-card:hover {
           border-color: var(--mut);
-          background-color: var(--btn);
+          background-color: var(--panel2);
         }
         .emp-icon {
           width: 48px;

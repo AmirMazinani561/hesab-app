@@ -235,10 +235,10 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
   const getRowStyle = (type: string) => {
     switch(type) {
-      case "پول نقد": return { backgroundColor: "rgba(63, 185, 80, 0.15)" }; // green
-      case "شارژ و اینترنت": return { backgroundColor: "rgba(88, 166, 255, 0.15)" }; // blue
-      case "خرید": return { backgroundColor: "rgba(210, 153, 34, 0.15)" }; // yellow
-      case "حواله حساب": return { backgroundColor: "rgba(137, 87, 229, 0.15)" }; // purple
+      case "پول نقد": return { backgroundColor: "rgba(26, 127, 55, 0.1)" }; // green
+      case "شارژ و اینترنت": return { backgroundColor: "rgba(9, 105, 218, 0.1)" }; // blue
+      case "خرید": return { backgroundColor: "rgba(180, 83, 9, 0.1)" }; // yellow/orange
+      case "حواله حساب": return { backgroundColor: "rgba(137, 87, 229, 0.1)" }; // purple
       default: return {};
     }
   };
@@ -266,7 +266,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           text-align: center;
         }
         .box-title { color: var(--mut); font-size: 14px; margin-bottom: 12px; }
-        .box-value { font-size: 24px; font-weight: bold; color: #fff; }
+        .box-value { font-size: 24px; font-weight: bold; color: var(--text); }
         .box-input {
           background: var(--bg);
           border: 1px solid var(--line);
@@ -279,9 +279,9 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           text-align: center;
           font-family: inherit;
         }
-        .box-input:focus { outline: none; border-color: #58a6ff; }
+        .box-input:focus { outline: none; border-color: #0969da; }
         .save-btn {
-          background: #238636;
+          background: #1a7f37;
           color: #fff;
           border: none;
           padding: 8px 16px;
@@ -294,7 +294,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         .save-btn:hover { background: #2ea043; }
         .save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .print-btn {
-          background: #1f6feb;
+          background: #0969da;
           color: #fff;
           border: none;
           padding: 8px 16px;
@@ -323,9 +323,9 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           color: var(--text);
           font-size: 14px;
         }
-        .table th { background: var(--btn); font-weight: bold; color: var(--mut); }
+        .table th { background: var(--panel2); font-weight: bold; color: var(--mut); }
         .table tr:last-child td { border-bottom: none; }
-        .del-btn { color: #f85149; background: none; border: none; cursor: pointer; }
+        .del-btn { color: #d1242f; background: none; border: none; cursor: pointer; }
         
         .add-pay-form {
           display: flex;
@@ -463,7 +463,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           
           .empty-data-td {
             text-align: center !important;
-            vertical-align: middle;
+            vertical-align: middle !important;
             color: #111 !important;
             padding: 20px !important;
             border-bottom: 1px solid #333 !important;
@@ -487,9 +487,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           }
           .report-footer-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111 !important; text-align: center; }
           .report-footer-val { font-size: 24px; font-weight: bold; text-align: center; }
-          }
-          .report-footer-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; }
-          .report-footer-val { font-size: 24px; font-weight: bold; }
         }
         @media screen {
           .print-only { display: none !important; }
@@ -535,7 +532,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
               </div>
               <div className="box">
                 <div className="box-title">طلب/بدهی از ماه قبل</div>
-                <div className="box-value" style={{ color: calculated.prevBal < BigInt(0) ? "#f85149" : "#3fb950" }}>
+                <div className="box-value" style={{ color: calculated.prevBal < BigInt(0) ? "var(--down)" : "var(--up)" }}>
                   {calculated.prevBal < BigInt(0) ? "-" : ""}{formatRial(calculated.prevBal < BigInt(0) ? (-calculated.prevBal).toString() : calculated.prevBal.toString())}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--mut)", marginTop: 8 }}>(محاسبه خودکار)</div>
@@ -608,9 +605,9 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                 <div style={{ fontSize: 12, color: "var(--mut)", marginTop: 8 }}>(پایه ÷ ۳۰ × روزها، رند به ۵۰هزار بالا)</div>
               </div>
 
-              <div className="box" style={{ borderColor: calculated.finalBalance < BigInt(0) ? "#f85149" : "#3fb950" }}>
+              <div className="box" style={{ borderColor: calculated.finalBalance < BigInt(0) ? "var(--down)" : "var(--up)" }}>
                 <div className="box-title">جمع طلب یا بدهی پایان ماه</div>
-                <div className="box-value" style={{ color: calculated.finalBalance < BigInt(0) ? "#f85149" : "#3fb950" }}>
+                <div className="box-value" style={{ color: calculated.finalBalance < BigInt(0) ? "var(--down)" : "var(--up)" }}>
                   {calculated.finalBalance < BigInt(0) ? "-" : ""}{formatRial(calculated.finalBalance < BigInt(0) ? (-calculated.finalBalance).toString() : calculated.finalBalance.toString())}
                 </div>
                 <div style={{ fontSize: 12, color: "var(--mut)", marginTop: 8 }}>

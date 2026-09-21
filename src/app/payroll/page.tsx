@@ -6,7 +6,7 @@ import PayrollClient from "./PayrollClient";
 export default async function PayrollPage() {
   const user = await currentUser();
   if (!user) {
-    redirect("/equity"); // Redirect to existing login screen
+    redirect("/equity"); 
   }
 
   return (

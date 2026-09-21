@@ -15,9 +15,9 @@ export default async function EmployeePage({ params }: { params: Promise<{ emplo
 
   if (!employee) {
     return (
-      <div dir="rtl" style={{ color: "#fff", padding: 40, textAlign: "center", fontFamily: "Vazirmatn" }}>
+      <div dir="rtl" style={{ color: "var(--text)", padding: 40, textAlign: "center", fontFamily: "Vazirmatn" }}>
         <h2>پرسنل یافت نشد.</h2>
-        <Link href="/payroll" style={{ color: "#58a6ff" }}>بازگشت به لیست</Link>
+        <Link href="/payroll" style={{ color: "#0969da" }}>بازگشت به لیست</Link>
       </div>
     );
   }
@@ -76,7 +76,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ emplo
           align-items: center;
         }
         .payroll-logout-btn {
-          background-color: #da3633;
+          background-color: #d1242f;
           color: #fff;
           border: none;
           padding: 6px 12px;
@@ -117,7 +117,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ emplo
       </header>
 
       <main className="payroll-main">
-        <EmployeeClient employeeId={employee.id} />
+        <EmployeeClient employeeId={employee.id} employeeName={employee.name} />
       </main>
     </div>
   );

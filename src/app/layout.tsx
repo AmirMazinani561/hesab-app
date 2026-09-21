@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#0d1117",
+  themeColor: "#f6f8fa",
 };
 
 export default function RootLayout({
@@ -21,7 +21,7 @@ export default function RootLayout({
       <head>
         {/* استایل برنامه — شامل فونت وزیرمتن به صورت جاسازی‌شده */}
         {/* eslint-disable-next-line @next/next/no-css-tags */}
-        <link rel="stylesheet" href="/app.css?v=r7" />
+        <link rel="stylesheet" href="/app.css?v=r10" />
       </head>
       <body>{children}</body>
     </html>
