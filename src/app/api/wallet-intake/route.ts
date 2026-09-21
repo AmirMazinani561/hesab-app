@@ -11,11 +11,11 @@
  */
 import { ok, fail } from "@/lib/api";
 import {
-  ensureDatabase, createTransaction, findBySource,
+  ensureDatabase, createTransaction, findBySource, findSimilarTransaction,
   listPartners, newId,
 } from "@/db/repo";
 import { fromSlash, isValidJdate } from "@/lib/jdate";
-import { partnerOf, mappingCount, idMap, nameMap } from "@/lib/wallet-map";
+import { partnerOf, mappingCount, idMap, nameMap, normalizeFa } from "@/lib/wallet-map";
 
 export const dynamic = "force-dynamic";
 
@@ -69,13 +69,20 @@ export async function POST(req: Request) {
     const partnerId = (toPartner || fromPartner) as string;
 
     /* --- شریک باید واقعاً وجود داشته باشد --- */
-    if (!partners.some(p => p.id === partnerId))
+    const matchedPartner = partners.find(p => p.id === partnerId);
+    if (!matchedPartner)
       return Response.json({
         error: `شریکی با شناسهٔ ${partnerId} در نرم‌افزار سرمایه نیست. `
              + `نگاشت را بررسی کنید.`,
       }, { status: 400 });
 
-    /* --- ضد تکرار --- */
+    // فیلتر قطعی: شریک باید حتماً یکی از دو شخص «سلطانی» یا «مزینانی» باشد
+    const pName = normalizeFa(matchedPartner.name);
+    if (!pName.includes("سلطانی") && !pName.includes("مزینانی")) {
+      return ok({ skipped: "no-partner" });
+    }
+
+    /* --- ضد تکرار بر اساس شناسه منبع کیف پول --- */
     const srcId = String(b.id || "");
     if (srcId) {
       const dup = await findBySource("wallet", srcId);
@@ -93,6 +100,17 @@ export async function POST(req: Request) {
     const amount = String(Math.round(Number(b.amount) || 0));
     if (!amount || Number(amount) <= 0)
       return Response.json({ error: "مبلغ نامعتبر است." }, { status: 400 });
+
+    /* --- ضد تکرار هوشمند بر اساس تطابق شریک، نوع، تاریخ شمسی و مبلغ --- */
+    const existing = await findSimilarTransaction({
+      partnerId,
+      kind,
+      amountRial: amount,
+      jdate,
+    });
+    if (existing) {
+      return ok({ skipped: "duplicate", id: existing.id });
+    }
 
     const t = await createTransaction({
       id: newId(),

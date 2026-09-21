@@ -286,6 +286,20 @@ export async function findBySource(source: string, sourceId: string) {
   return r[0] || null;
 }
 
+/** بررسی وجود تراکنش مشابه (ضد تکرار هوشمند بر اساس شریک، نوع، تاریخ و مبلغ) */
+export async function findSimilarTransaction(params: {
+  partnerId: string;
+  kind: string;
+  amountRial: string;
+  jdate: string;
+}) {
+  const r = await q<TxRow>(
+    `select * from transactions where partner_id = ? and kind = ? and amount_rial = ? and jdate = ? limit 1`,
+    [params.partnerId, params.kind, params.amountRial, params.jdate]
+  );
+  return r[0] || null;
+}
+
 /* ================= تنظیمات ================= */
 
 export async function getSetting(k: string): Promise<string | null> {
