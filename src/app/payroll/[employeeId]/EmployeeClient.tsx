@@ -212,7 +212,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     }
   };
 
-  // مرتب‌سازی ریاضی و قطعی تاریخ‌ها (از قدیمی به جدید)
   const sortedPayments = useMemo(() => {
     return [...payments].sort((a, b) => {
       const dA = parseInt(toEnglishDigits(a.payment_date || "0").replace(/\D/g, ""), 10) || 0;
@@ -240,7 +239,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     const rawOtAmt = (cSal / BigInt(30)) * cOt;
     const cOtAmt = roundUp50k(rawOtAmt);
     
-    // استفاده از لیست مرتب‌شده برای محاسبه
     const cPays = sortedPayments.reduce((acc, p) => acc + BigInt(p.amount_rial), BigInt(0));
     const finalBalance = (prevBal + cSal + cOtAmt) - cPays;
 
@@ -249,7 +247,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
   const groupedPayments = useMemo(() => {
     const groups: Record<string, { total: bigint, list: Payment[] }> = {};
-    // گروه‌بندی از روی لیست مرتب‌شده انجام می‌شود تا در پرینت هم تاریخ‌ها مرتب باشند
     sortedPayments.forEach(p => {
       if (!groups[p.payment_type]) groups[p.payment_type] = { total: BigInt(0), list: [] };
       groups[p.payment_type].total += BigInt(p.amount_rial);
@@ -370,11 +367,11 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           font-size: 14px;
         }
 
-        /* --- PRINT A4 STYLES --- */
         @media print {
-          @page { size: A4 portrait; margin: 10mm; }
+          /* حاشیه به ۵ میلی‌متر کاهش یافت تا فضا برای جداول بیشتر شود */
+          @page { size: A4 portrait; margin: 5mm !important; }
           
-          /* اجبار کردن تمام کانتینرهای صفحه به سفید شدن */
+          /* اجبار تمامی لایه‌های صفحه به اشغال ۱۰۰٪ عرض کاغذ */
           body, html, .payroll-container, .payroll-main {
             background-color: #fff !important;
             color: #000 !important;
@@ -383,6 +380,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             print-color-adjust: exact !important;
             margin: 0 !important;
             padding: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
             min-height: 0 !important;
           }
           
@@ -390,9 +389,11 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .print-only { 
             display: block !important; 
             width: 100% !important; 
+            max-width: 100% !important;
             box-sizing: border-box !important;
             direction: rtl;
             background-color: #fff !important;
+            padding: 5mm !important; /* پدینگ داخلی برای حفظ زیبایی لبه‌ها */
           }
           
           .report-header {
@@ -415,7 +416,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             text-align: center; 
           }
           
-          /* کادرهای بالا تماماً سفید با خطوط مشکی */
           .report-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -441,13 +441,13 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-pos { color: #1a7f37 !important; }
           .report-neg { color: #d1242f !important; }
           
-          /* جداول پایین تماماً سفید */
           .report-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-bottom: 20px;
             align-items: stretch;
+            width: 100% !important;
           }
           .report-group-wrap {
             display: flex;
@@ -457,6 +457,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             background: #fff !important;
             overflow: hidden;
             box-sizing: border-box;
+            width: 100% !important;
           }
           
           .report-group-header {
@@ -526,7 +527,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             background: #fff !important;
           }
           
-          /* فوتر تماماً سفید */
           .report-footer-box {
             border: 2px solid #000 !important;
             padding: 15px;
