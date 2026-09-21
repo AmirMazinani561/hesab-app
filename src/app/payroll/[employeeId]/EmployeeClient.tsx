@@ -335,7 +335,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           @page { size: A4 portrait; margin: 10mm; }
           body, html {
             background-color: #fff !important;
-            color: #111 !important;
+            color: #000 !important;
             font-family: Vazirmatn, sans-serif !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -352,7 +352,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           
           .report-header {
             text-align: center;
-            border-bottom: 2px solid #111;
+            border-bottom: 2px solid #000;
             padding-bottom: 10px;
             margin-bottom: 20px;
             width: 100%;
@@ -360,17 +360,17 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-header h2 { 
             margin: 0 auto; 
             font-size: 20px; 
-            color: #111 !important; 
+            color: #000 !important; 
             text-align: center; 
           }
           .report-header p { 
             margin: 6px 0 0 0; 
             font-size: 14px; 
-            color: #333 !important; 
+            color: #000 !important; 
             text-align: center; 
           }
           
-          /* Three Top Boxes (Perfectly Centered 3 Lines) */
+          /* Three Top Boxes */
           .report-grid-3 {
             display: grid;
             grid-template-columns: 1fr 1fr 1fr;
@@ -378,7 +378,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             margin-bottom: 20px;
           }
           .report-box {
-            border: 1.5px solid #111 !important;
+            border: 2px solid #000 !important;
             border-radius: 8px;
             padding: 12px;
             background-color: #f3f4f6 !important;
@@ -386,12 +386,12 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 110px; /* Fixed height to ensure uniform grid */
+            height: 110px; 
             box-sizing: border-box;
           }
-          .report-box-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #111 !important; text-align: center; }
-          .report-box-value { font-size: 20px; font-weight: bold; color: #111 !important; margin-bottom: 6px; text-align: center; line-height: 1.1; }
-          .report-box-sub { font-size: 13px; color: #444 !important; text-align: center; }
+          .report-box-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #000 !important; text-align: center; }
+          .report-box-value { font-size: 20px; font-weight: bold; color: #000 !important; margin-bottom: 6px; text-align: center; line-height: 1.1; }
+          .report-box-sub { font-size: 13px; color: #000 !important; text-align: center; }
           
           .report-pos { color: #1a7f37 !important; }
           .report-neg { color: #d1242f !important; }
@@ -407,32 +407,32 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-group-wrap {
             display: flex;
             flex-direction: column;
-            border: 1.5px solid #111 !important;
+            border: 2px solid #000 !important;
             border-radius: 8px;
             background: #fff !important;
             overflow: hidden;
             box-sizing: border-box;
           }
           
-          /* Title & Amount Header inside the 4-box */
+          /* Title & Amount Header inside the 4-box - FIXED LINE & HEIGHT */
           .report-group-header {
             background-color: #f1f5f9 !important;
-            border-bottom: 1.5px solid #111 !important;
+            border-bottom: 2px solid #000 !important; /* خط جداکننده قطعی و ضخیم */
             padding: 10px 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            height: 70px; /* Locked height so all 4 boxes match exactly */
+            height: 70px; /* ارتفاع ثابت برای تراز شدن هر ۴ ستون */
           }
-          .rg-title { font-size: 13px; font-weight: bold; color: #111 !important; text-align: center; }
-          .rg-amount { font-size: 15px; font-weight: bold; color: #111 !important; margin-top: 6px; text-align: center; }
+          .rg-title { font-size: 13px; font-weight: bold; color: #000 !important; text-align: center; }
+          .rg-amount { font-size: 15px; font-weight: bold; color: #000 !important; margin-top: 6px; text-align: center; }
           
           /* Table Headers */
           .flex-th {
             display: flex;
             background: #f8fafc !important;
-            border-bottom: 1.5px solid #111 !important;
+            border-bottom: 2px solid #000 !important;
             height: 36px;
             align-items: stretch;
           }
@@ -441,13 +441,13 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             text-align: center;
             font-size: 12px;
             font-weight: bold;
-            color: #111 !important;
+            color: #000 !important;
             display: flex;
             align-items: center;
             justify-content: center;
           }
           .flex-th > div:first-child {
-            border-left: 1.5px solid #111 !important;
+            border-left: 1px solid #000 !important;
           }
           
           /* Table Body */
@@ -458,40 +458,40 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           }
           .flex-tr {
             display: flex;
-            border-bottom: 1px solid #ccc;
+            border-bottom: 1px solid #000 !important;
             min-height: 34px;
           }
           .flex-tr:last-child {
-            border-bottom: none;
+            border-bottom: none !important;
           }
           .flex-tr > div {
             flex: 1;
             text-align: center;
             padding: 6px 2px;
             font-size: 12px;
-            color: #111 !important;
+            color: #000 !important;
             display: flex;
             align-items: center;
             justify-content: center;
           }
           .flex-tr > div:first-child {
-            border-left: 1.5px solid #111 !important;
+            border-left: 1px solid #000 !important;
           }
           
-          /* Empty State perfectly expanding */
+          /* Empty State */
           .flex-empty {
             display: flex;
             align-items: center;
             justify-content: center;
             flex-grow: 1;
             padding: 20px;
-            color: #64748b !important;
+            color: #555 !important;
             font-size: 12px;
           }
           
           /* Footer */
           .report-footer-box {
-            border: 2px solid #111;
+            border: 2px solid #000 !important;
             padding: 15px;
             border-radius: 8px;
             background-color: #f3f4f6 !important;
@@ -500,7 +500,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             justify-content: center;
             align-items: center;
           }
-          .report-footer-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111 !important; }
+          .report-footer-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #000 !important; }
           .report-footer-val { font-size: 24px; font-weight: bold; }
         }
         @media screen {
@@ -634,7 +634,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         )}
       </div>
 
-      {/* --- A4 PRINT UI --- */}
+      {/* --- A4 PRINT UI (REBUILT WITH FLEXBOX FOR EQUAL HEIGHTS) --- */}
       <div className="print-only">
         <div className="report-header">
           <h2>فیش حقوقی و صورت‌وضعیت پرسنل</h2>
@@ -665,22 +665,25 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           </div>
         </div>
 
-        {/* Row 2 & 3: Payment Summaries & Details */}
+        {/* Row 2 & 3: Payment Summaries & Details (Using Flexbox instead of Table) */}
         <div className="report-grid-4">
           {PAYMENT_TYPES.map(type => {
             const data = groupedPayments[type] || { total: 0n, list: [] };
             return (
               <div key={type} className="report-group-wrap">
+                {/* Header Section */}
                 <div className="report-group-header">
                   <div className="rg-title">جمع {type}:</div>
                   <div className="rg-amount">{formatRial(data.total.toString()) || "0"}</div>
                 </div>
                 
+                {/* Table Headers */}
                 <div className="flex-th">
                   <div>تاریخ</div>
                   <div>مبلغ (ریال)</div>
                 </div>
                 
+                {/* Table Body */}
                 <div className="flex-tbody">
                   {data.list.length > 0 ? (
                     data.list.map(p => (
