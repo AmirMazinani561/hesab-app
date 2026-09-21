@@ -39,6 +39,33 @@ export type TxRow = {
   created_at?: string;
 };
 
+export type PayrollEmployee = {
+  id: string;
+  code: string;
+  name: string;
+  created_at?: string;
+};
+
+export type PayrollMonthlyRecord = {
+  id: string;
+  employee_id: string;
+  year: number;
+  month: number;
+  base_salary_rial: string;
+  overtime_days: number;
+  created_at?: string;
+};
+
+export type PayrollPayment = {
+  id: string;
+  record_id: string;
+  payment_date: string;
+  amount_rial: string;
+  description: string;
+  payment_type: string;
+  created_at?: string;
+};
+
 /* ================= ساخت جداول ================= */
 
 const TS = () =>
@@ -91,6 +118,36 @@ export async function ensureDatabase(): Promise<void> {
     username      varchar(150) not null,
     password_hash ${TXT()}     not null,
     full_name     varchar(191),
+    created_at    ${TS()},
+    primary key (id)
+  )`);
+
+  await exec(`create table if not exists payroll_employees (
+    id         varchar(64)  not null,
+    code       varchar(32)  not null,
+    name       varchar(191) not null,
+    created_at ${TS()},
+    primary key (id)
+  )`);
+
+  await exec(`create table if not exists payroll_monthly_records (
+    id               varchar(64)   not null,
+    employee_id      varchar(64)   not null,
+    year             int           not null,
+    month            int           not null,
+    base_salary_rial decimal(20,0) not null,
+    overtime_days    decimal(10,2) not null,
+    created_at       ${TS()},
+    primary key (id)
+  )`);
+
+  await exec(`create table if not exists payroll_payments (
+    id            varchar(64)   not null,
+    record_id     varchar(64)   not null,
+    payment_date  varchar(8)    not null,
+    amount_rial   decimal(20,0) not null,
+    description   ${TXT()},
+    payment_type  varchar(32)   not null,
     created_at    ${TS()},
     primary key (id)
   )`);
@@ -346,3 +403,73 @@ export async function createUser(username: string, hash: string) {
 export async function updateUserPassword(id: string, hash: string) {
   await exec(`update users set password_hash = ? where id = ?`, [hash, id]);
 }
+
+/* ================= حقوق و دستمزد ================= */
+
+export const listEmployees = () => q<PayrollEmployee>(`select * from payroll_employees order by code asc`);
+
+export async function createEmployee(name: string) {
+  const id = newId();
+  const existing = await q<{ code: string }>(`select code from payroll_employees order by cast(code as unsigned) desc limit 1`);
+  const lastCode = existing.length ? parseInt(existing[0].code) : 1000;
+  const newCode = (lastCode + 1).toString();
+  await exec(`insert into payroll_employees (id, code, name) values (?, ?, ?)`, [id, newCode, name]);
+  return { id, code: newCode, name };
+}
+
+export async function getEmployee(id: string) {
+  const r = await q<PayrollEmployee>(`select * from payroll_employees where id = ?`, [id]);
+  return r[0] || null;
+}
+
+export async function getMonthlyRecord(employeeId: string, year: number, month: number) {
+  const r = await q<PayrollMonthlyRecord>(
+    `select * from payroll_monthly_records where employee_id = ? and year = ? and month = ? limit 1`,
+    [employeeId, year, month]
+  );
+  return r[0] || null;
+}
+
+export async function getPreviousMonthlyRecord(employeeId: string, year: number, month: number) {
+  let prevMonth = month - 1;
+  let prevYear = year;
+  if (prevMonth === 0) {
+    prevMonth = 12;
+    prevYear -= 1;
+  }
+  return getMonthlyRecord(employeeId, prevYear, prevMonth);
+}
+
+export async function saveMonthlyRecord(employeeId: string, year: number, month: number, baseSalaryRial: string, overtimeDays: number) {
+  const existing = await getMonthlyRecord(employeeId, year, month);
+  if (existing) {
+    await exec(
+      `update payroll_monthly_records set base_salary_rial = ?, overtime_days = ? where id = ?`,
+      [baseSalaryRial, overtimeDays, existing.id]
+    );
+    return existing.id;
+  } else {
+    const id = newId();
+    await exec(
+      `insert into payroll_monthly_records (id, employee_id, year, month, base_salary_rial, overtime_days) values (?, ?, ?, ?, ?, ?)`,
+      [id, employeeId, year, month, baseSalaryRial, overtimeDays]
+    );
+    return id;
+  }
+}
+
+export const listPayments = (recordId: string) => q<PayrollPayment>(
+  `select * from payroll_payments where record_id = ? order by payment_date asc, created_at asc`,
+  [recordId]
+);
+
+export async function createPayment(p: Omit<PayrollPayment, "created_at" | "id">) {
+  const id = newId();
+  await exec(
+    `insert into payroll_payments (id, record_id, payment_date, amount_rial, description, payment_type) values (?, ?, ?, ?, ?, ?)`,
+    [id, p.record_id, p.payment_date, p.amount_rial, p.description, p.payment_type]
+  );
+  return id;
+}
+
+export const deletePayment = (id: string) => exec(`delete from payroll_payments where id = ?`, [id]);

@@ -1,12 +1,25 @@
 import Link from "next/link";
 import { currentUser, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import PayrollClient from "./PayrollClient";
+import { getEmployee } from "@/db/repo";
+import EmployeeClient from "./EmployeeClient";
 
-export default async function PayrollPage() {
+export default async function EmployeePage({ params }: { params: Promise<{ employeeId: string }> }) {
   const user = await currentUser();
   if (!user) {
-    redirect("/equity"); // Redirect to existing login screen
+    redirect("/equity");
+  }
+
+  const { employeeId } = await params;
+  const employee = await getEmployee(employeeId);
+
+  if (!employee) {
+    return (
+      <div dir="rtl" style={{ color: "#fff", padding: 40, textAlign: "center", fontFamily: "Vazirmatn" }}>
+        <h2>پرسنل یافت نشد.</h2>
+        <Link href="/payroll" style={{ color: "#58a6ff" }}>بازگشت به لیست</Link>
+      </div>
+    );
   }
 
   return (
@@ -77,53 +90,17 @@ export default async function PayrollPage() {
           margin: 40px auto;
           padding: 0 24px;
         }
-        .payroll-dashboard-blank {
-          background-color: #161b22;
-          border: 1px solid #30363d;
-          border-radius: 12px;
-          padding: 80px 24px;
-          text-align: center;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          min-height: 400px;
-        }
-        .payroll-icon-wrap {
-          width: 80px;
-          height: 80px;
-          background-color: #0d1117;
-          border: 1px solid #30363d;
-          border-radius: 50%;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          margin-bottom: 24px;
-        }
-        .payroll-h2 {
-          font-size: 24px;
-          font-weight: bold;
-          color: #fff;
-          margin-bottom: 16px;
-        }
-        .payroll-p {
-          font-size: 16px;
-          color: #8b949e;
-          line-height: 1.8;
-          max-width: 500px;
-          margin: 0 auto;
-        }
       `}} />
 
       <header className="payroll-header">
         <div className="payroll-header-left">
-          <Link href="/" className="payroll-back-btn">
-            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <Link href="/payroll" className="payroll-back-btn">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
             </svg>
-            بازگشت به هاب
+            بازگشت به پرسنل
           </Link>
-          <h1 className="payroll-title">ماژول حقوق و دستمزد</h1>
+          <h1 className="payroll-title">جزئیات کارکرد: {employee.name} (کد: {employee.code})</h1>
         </div>
         <div className="payroll-user-info">
           <span style={{ fontSize: "14px", color: "#8b949e" }}>کاربر: {user.username}</span>
@@ -140,7 +117,7 @@ export default async function PayrollPage() {
       </header>
 
       <main className="payroll-main">
-          <PayrollClient />
+        <EmployeeClient employeeId={employee.id} />
       </main>
     </div>
   );
