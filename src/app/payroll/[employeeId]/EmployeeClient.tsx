@@ -20,7 +20,6 @@ const parseRial = (val: string) => {
   return val.replace(/,/g, "").replace(/\D/g, "");
 };
 
-// Date formatter (auto slash)
 const formatDateInput = (val: string) => {
   const digits = val.replace(/\D/g, "");
   if (digits.length <= 4) return digits;
@@ -30,7 +29,6 @@ const formatDateInput = (val: string) => {
 
 const cleanDate = (val: string) => val.replace(/\D/g, "");
 
-// Round up to nearest 50000
 const roundUp50k = (val: bigint) => {
   if (val === 0n) return 0n;
   const remainder = val % 50000n;
@@ -62,11 +60,9 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
   const [prevRecord, setPrevRecord] = useState<RecordData | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
 
-  // Inputs
   const [baseSalary, setBaseSalary] = useState("");
   const [overtimeDays, setOvertimeDays] = useState("");
   
-  // New Payment form
   const [payDate, setPayDate] = useState("");
   const [payAmount, setPayAmount] = useState("");
   const [payDesc, setPayDesc] = useState("");
@@ -193,7 +189,6 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     }
   };
 
-  // Calculations
   const calculated = useMemo(() => {
     let prevBal = BigInt(0);
     if (prevRecord) {
@@ -211,13 +206,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     const cPays = payments.reduce((acc, p) => acc + BigInt(p.amount_rial), BigInt(0));
     const finalBalance = (prevBal + cSal + cOtAmt) - cPays;
 
-    return {
-      prevBal,
-      cSal,
-      cOtAmt,
-      cPays,
-      finalBalance
-    };
+    return { prevBal, cSal, cOtAmt, cPays, finalBalance };
   }, [prevRecord, prevPaymentsAmount, baseSalary, overtimeDays, payments]);
 
   const groupedPayments = useMemo(() => {
@@ -343,182 +332,159 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
         /* --- PRINT A4 STYLES --- */
         @media print {
-          @page { size: A4 portrait; margin: 12mm 15mm !important; }
+          @page { size: A4 portrait; margin: 10mm; }
           body, html {
             background-color: #fff !important;
             color: #111 !important;
             font-family: Vazirmatn, sans-serif !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .no-print { display: none !important; }
           .print-only { 
             display: block !important; 
             width: 100% !important; 
-            max-width: 100% !important; 
             box-sizing: border-box !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
-          }
-          .payroll-header { display: none !important; }
-          .payroll-container, .payroll-main { 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            max-width: 100% !important; 
-            width: 100% !important; 
-            background: #fff !important;
+            direction: rtl;
           }
           
           .report-header {
             text-align: center;
             border-bottom: 2px solid #222;
-            padding-bottom: 8px;
-            margin-bottom: 16px;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
             width: 100%;
-            box-sizing: border-box;
           }
           .report-header h2 { 
-            margin: 0; 
-            font-size: 19px; 
+            margin: 0 auto; 
+            font-size: 20px; 
             color: #111 !important; 
-            text-align: center;
-            padding: 0;
+            text-align: center; 
           }
           .report-header p { 
             margin: 6px 0 0 0; 
-            font-size: 13px; 
+            font-size: 14px; 
             color: #333 !important; 
             text-align: center; 
           }
           
           .report-grid-3 {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 16px;
-            width: 100%;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
           }
           .report-box {
-            border: 1.5px solid #333;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            background-color: #f8fafc !important;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 12px;
+            background-color: #f3f4f6 !important;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            min-height: 78px;
           }
-          .report-box-title { font-size: 12.5px; font-weight: 600; margin-bottom: 6px; color: #333 !important; }
-          .report-box-value { font-size: 17px; font-weight: 700; color: #111 !important; }
+          .report-box-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #111 !important; }
+          .report-box-value { font-size: 18px; font-weight: bold; color: #111 !important; }
+          
           .report-pos { color: #1a7f37 !important; }
           .report-neg { color: #d1242f !important; }
-
-          /* ساختار تراز شده ردیف دوم */
+          
+          /* The Magic Flex Grid for Equal Heights */
           .report-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-bottom: 20px;
             align-items: stretch;
-            width: 100%;
           }
           .report-group-wrap {
             display: flex;
             flex-direction: column;
-            height: 100%;
-            border: 1.5px solid #333;
+            border: 1px solid #333;
             border-radius: 6px;
+            background: #fff !important;
             overflow: hidden;
-            background: #fff;
             box-sizing: border-box;
           }
           .report-group-title {
             background-color: #f1f5f9 !important;
-            border-bottom: 1.5px solid #333;
+            border-bottom: 1px solid #333;
             padding: 8px 4px;
-            font-weight: 700;
+            font-weight: bold;
             font-size: 13px;
             text-align: center;
-            height: 38px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             color: #111 !important;
-          }
-          .report-table {
-            width: 100%;
-            border-collapse: collapse;
-            display: flex;
-            flex-direction: column;
-            flex: 1 1 auto;
-            height: 100%;
-          }
-          .report-table thead, .report-table tbody {
-            width: 100%;
-          }
-          .report-table thead tr {
-            display: flex;
-            width: 100%;
-            background-color: #f8fafc !important;
-            border-bottom: 1.5px solid #333;
-            height: 28px;
-          }
-          .report-table tbody {
-            display: flex;
-            flex-direction: column;
-            flex: 1 1 auto;
-          }
-          .report-table tbody tr {
-            display: flex;
-            width: 100%;
-            border-bottom: 1px solid #e2e8f0;
-          }
-          .report-table tbody tr:last-child {
-            border-bottom: none;
-          }
-          .report-table th, .report-table td {
-            padding: 5px 2px;
-            text-align: center;
-            font-size: 11.5px;
-            color: #111 !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          }
-          .report-table th:first-child, .report-table td:first-child {
-            flex: 1.1;
-            border-left: 1px solid #333;
-          }
-          .report-table th:last-child, .report-table td:last-child {
-            flex: 1.3;
           }
           
-          .report-table tbody tr.empty-row {
-            flex: 1 1 auto;
+          /* Replaced Table with Flex Divs for perfect stretching */
+          .flex-th {
+            display: flex;
+            background: #f8fafc !important;
+            border-bottom: 1px solid #333;
+          }
+          .flex-th > div {
+            flex: 1;
+            text-align: center;
+            padding: 6px 2px;
+            font-size: 12px;
+            font-weight: bold;
+            color: #111 !important;
+          }
+          .flex-th > div:first-child {
+            border-left: 1px solid #333;
+          }
+          
+          .flex-tbody {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+          }
+          .flex-tr {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+          }
+          .flex-tr:last-child {
             border-bottom: none;
           }
-          .empty-data-td {
-            width: 100% !important;
-            flex: 1 1 auto !important;
-            border: none !important;
+          .flex-tr > div {
+            flex: 1;
+            text-align: center;
+            padding: 6px 2px;
+            font-size: 12px;
+            color: #111 !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .flex-tr > div:first-child {
+            border-left: 1px solid #333;
+          }
+          
+          .flex-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-grow: 1;
+            padding: 20px;
             color: #64748b !important;
             font-size: 12px;
           }
           
           .report-footer-box {
             border: 2px solid #333;
-            padding: 14px;
-            text-align: center;
+            padding: 15px;
             border-radius: 8px;
-            background-color: #f8fafc !important;
-            page-break-inside: avoid;
-            width: 100%;
-            box-sizing: border-box;
+            background-color: #f3f4f6 !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
           }
-          .report-footer-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; color: #333 !important; }
-          .report-footer-val { font-size: 22px; font-weight: 800; }
+          .report-footer-title { font-size: 16px; font-weight: bold; margin-bottom: 10px; color: #111 !important; }
+          .report-footer-val { font-size: 24px; font-weight: bold; }
         }
         @media screen {
           .print-only { display: none !important; }
@@ -651,8 +617,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         )}
       </div>
 
-      {/* --- A4 PRINT UI --- */}
-      <div className="print-only" dir="rtl">
+      {/* --- A4 PRINT UI (REBUILT WITH FLEXBOX FOR EQUAL HEIGHTS) --- */}
+      <div className="print-only">
         <div className="report-header">
           <h2>فیش حقوقی و صورت‌وضعیت پرسنل</h2>
           <p>
@@ -682,37 +648,33 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           </div>
         </div>
 
-        {/* Row 2 & 3: Payment Summaries & Details */}
+        {/* Row 2 & 3: Payment Summaries & Details (Using Flexbox instead of Table) */}
         <div className="report-grid-4">
           {PAYMENT_TYPES.map(type => {
             const data = groupedPayments[type] || { total: 0n, list: [] };
             return (
               <div key={type} className="report-group-wrap">
                 <div className="report-group-title">
-                  <span>جمع {type}: {formatRial(data.total.toString())}</span>
+                  جمع {type}: {formatRial(data.total.toString())}
                 </div>
-                <table className="report-table">
-                  <thead>
-                    <tr>
-                      <th>تاریخ</th>
-                      <th>مبلغ (ریال)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.list.length > 0 ? (
-                      data.list.map(p => (
-                        <tr key={p.id}>
-                          <td>{formatDateInput(p.payment_date)}</td>
-                          <td style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</td>
-                        </tr>
-                      ))
-                    ) : (
-                      <tr className="empty-row">
-                        <td colSpan={2} className="empty-data-td">موردی ثبت نشده</td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                
+                <div className="flex-th">
+                  <div>تاریخ</div>
+                  <div>مبلغ (ریال)</div>
+                </div>
+                
+                <div className="flex-tbody">
+                  {data.list.length > 0 ? (
+                    data.list.map(p => (
+                      <div className="flex-tr" key={p.id}>
+                        <div>{formatDateInput(p.payment_date)}</div>
+                        <div style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="flex-empty">موردی ثبت نشده</div>
+                  )}
+                </div>
               </div>
             );
           })}
