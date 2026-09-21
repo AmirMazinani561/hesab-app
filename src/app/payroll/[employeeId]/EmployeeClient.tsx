@@ -249,9 +249,9 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         .filters { display: flex; gap: 16px; margin-bottom: 24px; align-items: center; justify-content: space-between; }
         .filters-left { display: flex; gap: 16px; }
         .filter-select {
-          background-color: #161b22;
-          border: 1px solid #30363d;
-          color: #c9d1d9;
+          background-color: var(--panel);
+          border: 1px solid var(--line);
+          color: var(--text);
           padding: 8px 16px;
           border-radius: 6px;
           font-family: inherit;
@@ -259,17 +259,17 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         }
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
         .box {
-          background-color: #161b22;
-          border: 1px solid #30363d;
+          background-color: var(--panel);
+          border: 1px solid var(--line);
           border-radius: 12px;
           padding: 24px;
           text-align: center;
         }
-        .box-title { color: #8b949e; font-size: 14px; margin-bottom: 12px; }
+        .box-title { color: var(--mut); font-size: 14px; margin-bottom: 12px; }
         .box-value { font-size: 24px; font-weight: bold; color: #fff; }
         .box-input {
-          background: #0d1117;
-          border: 1px solid #30363d;
+          background: var(--bg);
+          border: 1px solid var(--line);
           color: #fff;
           font-size: 24px;
           font-weight: bold;
@@ -309,8 +309,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         .print-btn:hover { background: #388bfd; }
         
         .table-wrap {
-          background: #161b22;
-          border: 1px solid #30363d;
+          background: var(--panel);
+          border: 1px solid var(--line);
           border-radius: 12px;
           overflow: hidden;
           margin-bottom: 24px;
@@ -318,12 +318,12 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         .table { width: 100%; border-collapse: collapse; }
         .table th, .table td {
           padding: 12px 16px;
-          border-bottom: 1px solid #30363d;
+          border-bottom: 1px solid var(--line);
           text-align: right;
-          color: #c9d1d9;
+          color: var(--text);
           font-size: 14px;
         }
-        .table th { background: #21262d; font-weight: bold; color: #8b949e; }
+        .table th { background: var(--btn); font-weight: bold; color: var(--mut); }
         .table tr:last-child td { border-bottom: none; }
         .del-btn { color: #f85149; background: none; border: none; cursor: pointer; }
         
@@ -331,12 +331,12 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           display: flex;
           gap: 12px;
           padding: 16px;
-          background: #0d1117;
-          border-top: 1px solid #30363d;
+          background: var(--bg);
+          border-top: 1px solid var(--line);
         }
         .pay-input {
-          background: #161b22;
-          border: 1px solid #30363d;
+          background: var(--panel);
+          border: 1px solid var(--line);
           color: #fff;
           padding: 8px 12px;
           border-radius: 6px;
@@ -368,11 +368,18 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-header h2 { margin: 0; font-size: 20px; }
           .report-header p { margin: 5px 0 0 0; font-size: 14px; color: #555 !important; }
           
-          .report-grid {
+          .report-grid-3 {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr;
             gap: 15px;
             margin-bottom: 20px;
+          }
+          .report-grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: start;
           }
           .report-box {
             border: 1px solid #000;
@@ -450,7 +457,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         </div>
 
         {loading ? (
-          <div style={{ textAlign: "center", color: "#8b949e", padding: 40 }}>در حال بارگذاری...</div>
+          <div style={{ textAlign: "center", color: "var(--mut)", padding: 40 }}>در حال بارگذاری...</div>
         ) : (
           <>
             <div className="grid-2">
@@ -472,7 +479,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                 <div className="box-value" style={{ color: calculated.prevBal < BigInt(0) ? "#f85149" : "#3fb950" }}>
                   {calculated.prevBal < BigInt(0) ? "-" : ""}{formatRial(calculated.prevBal < BigInt(0) ? (-calculated.prevBal).toString() : calculated.prevBal.toString())}
                 </div>
-                <div style={{ fontSize: 12, color: "#8b949e", marginTop: 8 }}>(محاسبه خودکار)</div>
+                <div style={{ fontSize: 12, color: "var(--mut)", marginTop: 8 }}>(محاسبه خودکار)</div>
               </div>
             </div>
 
@@ -503,7 +510,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                   ))}
                   {payments.length === 0 && (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: "center", color: "#8b949e" }}>هیچ پرداختی در این ماه ثبت نشده است.</td>
+                      <td colSpan={6} style={{ textAlign: "center", color: "var(--mut)" }}>هیچ پرداختی در این ماه ثبت نشده است.</td>
                     </tr>
                   )}
                 </tbody>
@@ -539,7 +546,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
               <div className="box">
                 <div className="box-title">مبلغ کل اضافه‌کار (رند شده)</div>
                 <div className="box-value">{formatRial(calculated.cOtAmt.toString())}</div>
-                <div style={{ fontSize: 12, color: "#8b949e", marginTop: 8 }}>(پایه ÷ ۳۰ × روزها، رند به ۵۰هزار بالا)</div>
+                <div style={{ fontSize: 12, color: "var(--mut)", marginTop: 8 }}>(پایه ÷ ۳۰ × روزها، رند به ۵۰هزار بالا)</div>
               </div>
 
               <div className="box" style={{ borderColor: calculated.finalBalance < BigInt(0) ? "#f85149" : "#3fb950" }}>
@@ -547,7 +554,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                 <div className="box-value" style={{ color: calculated.finalBalance < BigInt(0) ? "#f85149" : "#3fb950" }}>
                   {calculated.finalBalance < BigInt(0) ? "-" : ""}{formatRial(calculated.finalBalance < BigInt(0) ? (-calculated.finalBalance).toString() : calculated.finalBalance.toString())}
                 </div>
-                <div style={{ fontSize: 12, color: "#8b949e", marginTop: 8 }}>
+                <div style={{ fontSize: 12, color: "var(--mut)", marginTop: 8 }}>
                   {calculated.finalBalance < BigInt(0) ? "(بدهی به شرکت)" : "(طلب از شرکت)"}
                 </div>
               </div>
@@ -566,13 +573,14 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           </p>
         </div>
 
-        <div className="report-grid">
+        {/* Row 1: Income & Balances */}
+        <div className="report-grid-3">
           <div className="report-box">
-            <div className="report-box-title">حقوق پایه این ماه</div>
+            <div className="report-box-title">حقوق ماه</div>
             <div className="report-box-value">{formatRial(calculated.cSal.toString())} ریال</div>
           </div>
           <div className="report-box">
-            <div className="report-box-title">مانده از ماه قبل</div>
+            <div className="report-box-title">مانده ماه قبل</div>
             <div className={`report-box-value ${calculated.prevBal < 0n ? "report-neg" : "report-pos"}`}>
               {calculated.prevBal < 0n ? "-" : ""}{formatRial(calculated.prevBal < 0n ? (-calculated.prevBal).toString() : calculated.prevBal.toString())} ریال
               <span style={{fontSize: "12px", marginRight: "8px", fontWeight: "normal"}}>
@@ -581,54 +589,50 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
             </div>
           </div>
           <div className="report-box">
-            <div className="report-box-title">تعداد روز اضافه‌کار</div>
-            <div className="report-box-value">{overtimeDays || "0"} روز</div>
-          </div>
-          <div className="report-box">
-            <div className="report-box-title">مبلغ اضافه‌کار</div>
+            <div className="report-box-title">اضافه‌کار ({overtimeDays || "0"} روز)</div>
             <div className="report-box-value">{formatRial(calculated.cOtAmt.toString())} ریال</div>
           </div>
         </div>
 
-        <h3 style={{ borderBottom: "1px solid #ccc", paddingBottom: "5px", marginBottom: "15px", fontSize: "16px" }}>
-          جزئیات پرداختی‌های این ماه
-        </h3>
-        
-        {Object.entries(groupedPayments).length === 0 ? (
-          <p style={{ textAlign: "center", color: "#555" }}>هیچ پرداختی در این دوره ثبت نشده است.</p>
-        ) : (
-          Object.entries(groupedPayments).map(([type, data]) => (
-            <div key={type} className="report-group-wrap">
-              <div className="report-group-title">
-                <span>نوع پرداختی: {type}</span>
-                <span>جمع این آیتم: {formatRial(data.total.toString())} ریال</span>
+        {/* Row 2 & 3: Payment Summaries & Details */}
+        <div className="report-grid-4">
+          {PAYMENT_TYPES.map(type => {
+            const data = groupedPayments[type] || { total: 0n, list: [] };
+            return (
+              <div key={type} className="report-group-wrap" style={{ marginBottom: 0 }}>
+                <div className="report-group-title" style={{ justifyContent: "center", borderBottom: "1px solid #000" }}>
+                  <span>جمع {type}: {formatRial(data.total.toString())}</span>
+                </div>
+                {data.list.length > 0 ? (
+                  <table className="report-table">
+                    <thead>
+                      <tr>
+                        <th>تاریخ</th>
+                        <th>مبلغ (ریال)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.list.map(p => (
+                        <tr key={p.id}>
+                          <td style={{textAlign: "center"}}>{formatDateInput(p.payment_date)}</td>
+                          <td style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <div style={{ border: "1px solid #000", borderTop: "none", padding: "10px", textAlign: "center", fontSize: "12px", color: "#555" }}>
+                    موردی ثبت نشده
+                  </div>
+                )}
               </div>
-              <table className="report-table">
-                <thead>
-                  <tr>
-                    <th style={{ width: "40px" }}>ردیف</th>
-                    <th style={{ width: "100px" }}>تاریخ</th>
-                    <th>شرح</th>
-                    <th style={{ width: "150px" }}>مبلغ (ریال)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.list.map((p, idx) => (
-                    <tr key={p.id}>
-                      <td>{idx + 1}</td>
-                      <td>{formatDateInput(p.payment_date)}</td>
-                      <td>{p.description || "-"}</td>
-                      <td style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ))
-        )}
+            );
+          })}
+        </div>
 
+        {/* Row 4: Final Result */}
         <div className="report-footer-box">
-          <div className="report-footer-title">مانده حساب نهایی پرسنل در پایان دوره</div>
+          <div className="report-footer-title">مانده نهایی ماه</div>
           <div className={`report-footer-val ${calculated.finalBalance < 0n ? "report-neg" : "report-pos"}`}>
              {calculated.finalBalance < 0n ? "بدهکار به شرکت: " : "بستانکار از شرکت: "}
              {formatRial(calculated.finalBalance < 0n ? (-calculated.finalBalance).toString() : calculated.finalBalance.toString())} ریال

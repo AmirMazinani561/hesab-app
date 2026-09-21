@@ -68,8 +68,8 @@ export default function PayrollClient() {
           gap: 32px;
         }
         .form-card {
-          background-color: #161b22;
-          border: 1px solid #30363d;
+          background-color: var(--panel);
+          border: 1px solid var(--line);
           border-radius: 12px;
           padding: 24px;
         }
@@ -77,7 +77,7 @@ export default function PayrollClient() {
           font-size: 18px;
           font-weight: bold;
           margin: 0 0 16px 0;
-          color: #c9d1d9;
+          color: var(--text);
         }
         .form-group {
           display: flex;
@@ -85,11 +85,11 @@ export default function PayrollClient() {
         }
         .form-input {
           flex: 1;
-          background-color: #0d1117;
-          border: 1px solid #30363d;
+          background-color: var(--bg);
+          border: 1px solid var(--line);
           border-radius: 6px;
           padding: 10px 16px;
-          color: #c9d1d9;
+          color: var(--text);
           font-family: inherit;
           font-size: 14px;
         }
@@ -122,31 +122,31 @@ export default function PayrollClient() {
           gap: 16px;
         }
         .emp-card {
-          background-color: #161b22;
-          border: 1px solid #30363d;
+          background-color: var(--panel);
+          border: 1px solid var(--line);
           border-radius: 12px;
           padding: 20px;
           text-decoration: none;
-          color: #c9d1d9;
+          color: var(--text);
           display: flex;
           align-items: center;
           gap: 16px;
           transition: 0.2s;
         }
         .emp-card:hover {
-          border-color: #8b949e;
-          background-color: #21262d;
+          border-color: var(--mut);
+          background-color: var(--btn);
         }
         .emp-icon {
           width: 48px;
           height: 48px;
-          background-color: #30363d;
+          background-color: var(--line);
           border-radius: 50%;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 20px;
-          color: #8b949e;
+          color: var(--mut);
         }
         .emp-info {
           display: flex;
@@ -160,11 +160,11 @@ export default function PayrollClient() {
         }
         .emp-code {
           font-size: 12px;
-          color: #8b949e;
+          color: var(--mut);
         }
         .loading {
           text-align: center;
-          color: #8b949e;
+          color: var(--mut);
           padding: 40px;
         }
       `}} />

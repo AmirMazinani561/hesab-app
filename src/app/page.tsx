@@ -13,15 +13,16 @@ export default async function HubPage() {
       <style dangerouslySetInnerHTML={{__html: `
         .hub-container {
           min-height: 100vh;
-          background-color: #0d1117;
-          color: #c9d1d9;
+          background-color: var(--bg);
+          color: var(--text);
           font-family: Vazirmatn, sans-serif;
+
           margin: 0;
           padding: 0;
         }
         .hub-header {
-          background-color: #161b22;
-          border-bottom: 1px solid #30363d;
+          background-color: var(--panel);
+          border-bottom: 1px solid var(--line);
           padding: 16px 24px;
           display: flex;
           justify-content: space-between;
@@ -30,7 +31,7 @@ export default async function HubPage() {
         .hub-title {
           font-size: 20px;
           font-weight: bold;
-          color: #c9d1d9;
+          color: var(--text);
           margin: 0;
         }
         .hub-user-info {
@@ -65,13 +66,13 @@ export default async function HubPage() {
           gap: 24px;
         }
         .hub-card {
-          background-color: #161b22;
-          border: 1px solid #30363d;
+          background-color: var(--panel);
+          border: 1px solid var(--line);
           border-radius: 12px;
           padding: 40px 24px;
           text-align: center;
           text-decoration: none;
-          color: #c9d1d9;
+          color: var(--text);
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -90,8 +91,8 @@ export default async function HubPage() {
         .hub-icon-wrap {
           width: 80px;
           height: 80px;
-          background-color: #0d1117;
-          border: 1px solid #30363d;
+          background-color: var(--bg);
+          border: 1px solid var(--line);
           border-radius: 50%;
           display: flex;
           justify-content: center;
@@ -106,7 +107,7 @@ export default async function HubPage() {
         }
         .hub-card-desc {
           font-size: 14px;
-          color: #8b949e;
+          color: var(--mut);
           line-height: 1.6;
           margin: 0;
         }
@@ -115,7 +116,7 @@ export default async function HubPage() {
       <header className="hub-header">
         <h1 className="hub-title">هاب مرکزی سیستم</h1>
         <div className="hub-user-info">
-          <span style={{ fontSize: "14px", color: "#8b949e" }}>کاربر: {user.username}</span>
+          <span style={{ fontSize: "14px", color: "var(--mut)" }}>کاربر: {user.username}</span>
           <form action={async () => {
             "use server";
             await signOut();

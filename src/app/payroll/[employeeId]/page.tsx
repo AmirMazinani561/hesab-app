@@ -27,15 +27,15 @@ export default async function EmployeePage({ params }: { params: Promise<{ emplo
       <style dangerouslySetInnerHTML={{__html: `
         .payroll-container {
           min-height: 100vh;
-          background-color: #0d1117;
-          color: #c9d1d9;
+          background-color: var(--bg);
+          color: var(--text);
           font-family: Vazirmatn, sans-serif;
           margin: 0;
           padding: 0;
         }
         .payroll-header {
-          background-color: #161b22;
-          border-bottom: 1px solid #30363d;
+          background-color: var(--panel);
+          border-bottom: 1px solid var(--line);
           padding: 16px 24px;
           display: flex;
           justify-content: space-between;
@@ -47,9 +47,9 @@ export default async function EmployeePage({ params }: { params: Promise<{ emplo
           gap: 16px;
         }
         .payroll-back-btn {
-          background-color: #21262d;
-          color: #c9d1d9;
-          border: 1px solid #30363d;
+          background-color: var(--btn);
+          color: var(--text);
+          border: 1px solid var(--line);
           padding: 6px 12px;
           border-radius: 6px;
           text-decoration: none;
@@ -60,15 +60,15 @@ export default async function EmployeePage({ params }: { params: Promise<{ emplo
           transition: 0.2s;
         }
         .payroll-back-btn:hover {
-          background-color: #30363d;
+          background-color: var(--line);
         }
         .payroll-title {
           font-size: 20px;
           font-weight: bold;
-          color: #c9d1d9;
+          color: var(--text);
           margin: 0;
           padding-right: 16px;
-          border-right: 1px solid #30363d;
+          border-right: 1px solid var(--line);
         }
         .payroll-user-info {
           display: flex;
@@ -103,7 +103,7 @@ export default async function EmployeePage({ params }: { params: Promise<{ emplo
           <h1 className="payroll-title">جزئیات کارکرد: {employee.name} (کد: {employee.code})</h1>
         </div>
         <div className="payroll-user-info">
-          <span style={{ fontSize: "14px", color: "#8b949e" }}>کاربر: {user.username}</span>
+          <span style={{ fontSize: "14px", color: "var(--mut)" }}>کاربر: {user.username}</span>
           <form action={async () => {
             "use server";
             await signOut();
