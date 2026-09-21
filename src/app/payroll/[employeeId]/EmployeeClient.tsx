@@ -358,11 +358,22 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .print-only { 
             display: block !important; 
             width: 100% !important; 
-            max-width: none !important; 
-            box-sizing: border-box; 
+            max-width: 100% !important; 
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
           }
           .payroll-header { display: none !important; }
-          .payroll-main { margin: 0 !important; padding: 0 !important; max-width: none !important; width: 100% !important; box-sizing: border-box; }
+          .payroll-container, .payroll-main { 
+            margin: 0 !important; 
+            padding: 0 !important; 
+            max-width: 100% !important; 
+            width: 100% !important; 
+            box-sizing: border-box !important;
+            min-height: 0 !important;
+            background: #fff !important;
+          }
           
           .report-header {
             text-align: center;
@@ -430,6 +441,8 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
           .report-table {
             width: 100%;
             border-collapse: collapse;
+            flex-grow: 1;
+            height: 100%;
           }
           .report-table th, .report-table td {
             border: 1px solid #333;
