@@ -93,12 +93,20 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
   const [addingPay, setAddingPay] = useState(false);
   const [prevPaymentsAmount, setPrevPaymentsAmount] = useState(BigInt(0));
 
+  const [editingPayId, setEditingPayId] = useState<string | null>(null);
+  const [editPayDate, setEditPayDate] = useState("");
+  const [editPayAmount, setEditPayAmount] = useState("");
+  const [editPayDesc, setEditPayDesc] = useState("");
+  const [editPayType, setEditPayType] = useState(PAYMENT_TYPES[0]);
+  const [savingEdit, setSavingEdit] = useState(false);
+
   useEffect(() => {
     fetchData();
   }, [year, month]);
 
   const fetchData = async () => {
     setLoading(true);
+    setEditingPayId(null);
     try {
       const recRes = await fetch(`/api/payroll/records?employeeId=${employeeId}&year=${year}&month=${month}`);
       if (recRes.ok) {
@@ -207,8 +215,80 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     try {
       await fetch(`/api/payroll/payments?id=${id}`, { method: "DELETE" });
       setPayments(payments.filter(p => p.id !== id));
+      if (editingPayId === id) {
+        cancelEditPayment();
+      }
     } catch (e) {
       console.error(e);
+    }
+  };
+
+  const startEditPayment = (p: Payment) => {
+    setEditingPayId(p.id);
+    setEditPayDate(formatDateInput(p.payment_date));
+    setEditPayType(p.payment_type);
+    setEditPayDesc(p.description || "");
+    setEditPayAmount(p.amount_rial);
+  };
+
+  const cancelEditPayment = () => {
+    setEditingPayId(null);
+    setEditPayDate("");
+    setEditPayType(PAYMENT_TYPES[0]);
+    setEditPayDesc("");
+    setEditPayAmount("");
+  };
+
+  const handleEditPayDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEditPayDate(formatDateInput(e.target.value));
+  };
+
+  const handleSaveEditPayment = async (id: string) => {
+    const cleanD = cleanDate(editPayDate);
+    if (!cleanD) {
+      alert("لطفاً تاریخ معتبر وارد کنید (مثلاً ۱۴۰۵/۰۱/۱۰)");
+      return;
+    }
+    const cleanAmt = parseRial(editPayAmount);
+    if (!cleanAmt || BigInt(cleanAmt) <= 0n) {
+      alert("لطفاً مبلغ معتبر وارد کنید");
+      return;
+    }
+    if (!editPayType) {
+      alert("لطفاً نوع پرداخت را مشخص کنید");
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      const res = await fetch("/api/payroll/payments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id,
+          paymentDate: cleanD,
+          paymentType: editPayType,
+          description: editPayDesc,
+          amountRial: cleanAmt
+        }),
+      });
+      if (res.ok) {
+        if (currentRecord?.id) {
+          const payRes = await fetch(`/api/payroll/payments?recordId=${currentRecord.id}`);
+          if (payRes.ok) {
+            setPayments(await payRes.json());
+          }
+        }
+        cancelEditPayment();
+      } else {
+        const d = await res.json();
+        alert("خطا در ذخیره ویرایش: " + (d.error || "نامشخص"));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("خطای ارتباط با سرور");
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -374,7 +454,13 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         }
         .table th { background: var(--panel2); font-weight: bold; color: var(--mut); }
         .table tr:last-child td { border-bottom: none; }
-        .del-btn { color: #d1242f; background: none; border: none; cursor: pointer; }
+        .table tfoot td { background: var(--panel2); font-weight: bold; border-top: 2px solid var(--line); border-bottom: none !important; }
+        .del-btn { color: #d1242f; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; }
+        .del-btn:hover { text-decoration: underline; }
+        .edit-btn { color: var(--primary, #0969da); background: none; border: none; cursor: pointer; font-family: inherit; font-size: 13px; font-weight: bold; }
+        .edit-btn:hover { text-decoration: underline; }
+        .cancel-btn { background: transparent; border: 1px solid var(--line); color: var(--mut); padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 12px; font-family: inherit; }
+        .cancel-btn:hover { color: var(--text); border-color: var(--mut); }
         
         .add-pay-form {
           display: flex;
@@ -631,48 +717,131 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                 </thead>
                 <tbody>
                   {sortedPayments.map((p, i) => (
-                    <tr key={p.id} style={getRowStyle(p.payment_type)}>
-                      <td>{toPersianDigits(i + 1)}</td>
-                      <td>{formatDateInput(p.payment_date)}</td>
-                      <td>
-                        {p.payment_type === "در انتظار" ? (
-                          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                            <span style={{
-                              backgroundColor: "#fef3c7",
-                              color: "#b45309",
-                              border: "1px solid #fcd34d",
-                              padding: "2px 8px",
-                              borderRadius: 4,
-                              fontSize: 11,
-                              fontWeight: "bold",
-                              whiteSpace: "nowrap"
-                            }}>
-                              در انتظار
-                            </span>
-                            <select
-                              className="pay-input no-print"
-                              style={{ padding: "2px 6px", fontSize: 11, height: 26, minWidth: 125 }}
-                              defaultValue=""
-                              onChange={e => {
-                                if (e.target.value) handleFinalizePayment(p.id, e.target.value);
-                              }}
+                    editingPayId === p.id ? (
+                      <tr key={p.id} style={{ backgroundColor: "rgba(9, 105, 218, 0.08)" }}>
+                        <td>{toPersianDigits(i + 1)}</td>
+                        <td>
+                          <input
+                            type="text"
+                            className="pay-input"
+                            style={{ width: 130, textAlign: "center", padding: "4px 8px" }}
+                            value={editPayDate}
+                            onChange={handleEditPayDateChange}
+                            placeholder="۱۴۰۵/۰۱/۱۰"
+                          />
+                        </td>
+                        <td>
+                          <select
+                            className="pay-input"
+                            style={{ padding: "4px 8px", height: 32 }}
+                            value={editPayType}
+                            onChange={e => setEditPayType(e.target.value)}
+                          >
+                            {PAYMENT_TYPES.map(t => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="pay-input"
+                            style={{ width: "100%", padding: "4px 8px" }}
+                            value={editPayDesc}
+                            onChange={e => setEditPayDesc(e.target.value)}
+                            placeholder="شرح (اختیاری)"
+                          />
+                        </td>
+                        <td>
+                          <input
+                            type="text"
+                            className="pay-input"
+                            style={{ width: 140, textAlign: "center", padding: "4px 8px", fontWeight: "bold" }}
+                            value={formatRial(editPayAmount)}
+                            onChange={e => setEditPayAmount(parseRial(e.target.value))}
+                            placeholder="مبلغ ریالی"
+                          />
+                        </td>
+                        <td>
+                          <div style={{ display: "flex", gap: 6, justifyContent: "center", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              className="save-btn"
+                              style={{ margin: 0, padding: "4px 10px", fontSize: 12 }}
+                              disabled={savingEdit}
+                              onClick={() => handleSaveEditPayment(p.id)}
                             >
-                              <option value="" disabled>تعیین نوع پرداخت...</option>
-                              {PAYMENT_TYPES.map(t => (
-                                <option key={t} value={t}>{t}</option>
-                              ))}
-                            </select>
+                              {savingEdit ? "..." : "ذخیره"}
+                            </button>
+                            <button
+                              type="button"
+                              className="cancel-btn"
+                              onClick={cancelEditPayment}
+                            >
+                              انصراف
+                            </button>
                           </div>
-                        ) : (
-                          p.payment_type
-                        )}
-                      </td>
-                      <td>{p.description}</td>
-                      <td style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</td>
-                      <td>
-                        <button className="del-btn" onClick={() => handleDeletePayment(p.id)}>حذف</button>
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
+                    ) : (
+                      <tr key={p.id} style={getRowStyle(p.payment_type)}>
+                        <td>{toPersianDigits(i + 1)}</td>
+                        <td>{formatDateInput(p.payment_date)}</td>
+                        <td>
+                          {p.payment_type === "در انتظار" ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                              <span style={{
+                                backgroundColor: "#fef3c7",
+                                color: "#b45309",
+                                border: "1px solid #fcd34d",
+                                padding: "2px 8px",
+                                borderRadius: 4,
+                                fontSize: 11,
+                                fontWeight: "bold",
+                                whiteSpace: "nowrap"
+                              }}>
+                                در انتظار
+                              </span>
+                              <select
+                                className="pay-input no-print"
+                                style={{ padding: "2px 6px", fontSize: 11, height: 26, minWidth: 125 }}
+                                defaultValue=""
+                                onChange={e => {
+                                  if (e.target.value) handleFinalizePayment(p.id, e.target.value);
+                                }}
+                              >
+                                <option value="" disabled>تعیین نوع پرداخت...</option>
+                                {PAYMENT_TYPES.map(t => (
+                                  <option key={t} value={t}>{t}</option>
+                                ))}
+                              </select>
+                            </div>
+                          ) : (
+                            p.payment_type
+                          )}
+                        </td>
+                        <td>{p.description}</td>
+                        <td style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</td>
+                        <td>
+                          <div style={{ display: "flex", gap: 8, justifyContent: "center", alignItems: "center" }}>
+                            <button
+                              type="button"
+                              className="edit-btn"
+                              onClick={() => startEditPayment(p)}
+                            >
+                              ویرایش
+                            </button>
+                            <button
+                              type="button"
+                              className="del-btn"
+                              onClick={() => handleDeletePayment(p.id)}
+                            >
+                              حذف
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
                   ))}
                   {sortedPayments.length === 0 && (
                     <tr>
@@ -680,6 +849,19 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                     </tr>
                   )}
                 </tbody>
+                {sortedPayments.length > 0 && (
+                  <tfoot>
+                    <tr>
+                      <td colSpan={4} style={{ textAlign: "left", padding: "12px 16px", color: "var(--text)" }}>
+                        جمع کل:
+                      </td>
+                      <td style={{ color: "var(--text)", fontSize: 15, fontWeight: "bold", whiteSpace: "nowrap" }}>
+                        {formatRial(calculated.cPays.toString())} <span style={{ fontSize: 12, fontWeight: "normal", color: "var(--mut)" }}>ریال</span>
+                      </td>
+                      <td></td>
+                    </tr>
+                  </tfoot>
+                )}
               </table>
               
               <form className="add-pay-form" onSubmit={handleAddPayment}>
@@ -737,7 +919,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
         <div className="report-header">
           <h2>فیش حقوقی و صورت‌وضعیت پرسنل</h2>
           <p>
-            {employeeName ? `نام پرسنل: ${employeeName} | ` : ""}
+            {employeeName ? `نام پرسنل : آقای ${employeeName} | ` : ""}
             دوره: {MONTHS[month - 1]} سال {toPersianDigits(year)}
           </p>
         </div>
