@@ -127,3 +127,40 @@ export function partnerOf(
 
   return autoMatch(accountName, partners);
 }
+
+export type EmployeeLite = { id: string; name: string };
+
+/**
+ * تطبیق خودکار نام حساب کیف پول با فهرست پرسنل حقوق و دستمزد.
+ */
+export function matchEmployee(
+  accountName: string | undefined,
+  employees: EmployeeLite[] = []
+): EmployeeLite | null {
+  if (!accountName || !employees.length) return null;
+
+  const acc = normalizeFa(accountName);
+  const accCore = coreName(accountName);
+  if (!acc && !accCore) return null;
+
+  // ۱) برابری کامل نام نرمالایز شده
+  let hits = employees.filter(e => normalizeFa(e.name) === acc);
+  if (hits.length === 1) return hits[0];
+
+  // ۲) برابری هسته نام‌ها (مثلاً «حقوق علی رضایی» یا «علی رضایی»)
+  if (accCore) {
+    hits = employees.filter(e => coreName(e.name) === accCore);
+    if (hits.length === 1) return hits[0];
+  }
+
+  // ۳) دربرگیری نام یا هسته نام
+  hits = employees.filter(e => {
+    const eNorm = normalizeFa(e.name);
+    const eCore = coreName(e.name);
+    if (eNorm.length < 3) return false;
+    return acc.includes(eNorm) || (accCore && eCore && accCore.includes(eCore));
+  });
+  if (hits.length === 1) return hits[0];
+
+  return null;
+}

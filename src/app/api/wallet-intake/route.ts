@@ -12,10 +12,11 @@
 import { ok, fail } from "@/lib/api";
 import {
   ensureDatabase, createTransaction, findBySource, findSimilarTransaction,
-  listPartners, newId,
+  listPartners, newId, listEmployees, getMonthlyRecord, saveMonthlyRecord,
+  createPayment, findPaymentBySourceId, findSimilarPayrollPayment,
 } from "@/db/repo";
 import { fromSlash, isValidJdate } from "@/lib/jdate";
-import { partnerOf, mappingCount, idMap, nameMap, normalizeFa } from "@/lib/wallet-map";
+import { partnerOf, mappingCount, idMap, nameMap, normalizeFa, matchEmployee } from "@/lib/wallet-map";
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +35,23 @@ export async function POST(req: Request) {
 
     await ensureDatabase();
     const b = await req.json();
+    const srcId = String(b.id || "");
 
-    /* --- کدام طرف شریک است؟ --- */
-    // فهرست شرکا لازم است تا تطبیق خودکارِ نام انجام شود
+    /* --- تاریخ: کیف پول '1404/06/22' یا '14040622' می‌دهد --- */
+    let jdate = "";
+    if (b.shamsiDate) jdate = fromSlash(String(b.shamsiDate));
+    if (!jdate && b.jdate && /^\d{8}$/.test(String(b.jdate))) jdate = String(b.jdate);
+    if (!isValidJdate(jdate))
+      return Response.json({ error: "تاریخ نامعتبر است." }, { status: 400 });
+
+    /* --- مبلغ: هر دو نرم‌افزار ریال‌اند، کارمزد نادیده گرفته می‌شود --- */
+    const amount = String(Math.round(Number(b.amount) || 0));
+    if (!amount || Number(amount) <= 0)
+      return Response.json({ error: "مبلغ نامعتبر است." }, { status: 400 });
+
+    /* ========================================================== */
+    /* ۱. بررسی شرکای سرمایه (سرمایه سلطانی و سرمایه مزینانی)   */
+    /* ========================================================== */
     const partners = await listPartners();
 
     const fromPartner = partnerOf(
@@ -50,82 +65,111 @@ export async function POST(req: Request) {
       partners
     );
 
-    // هیچ‌کدام شریک نیست ⇒ تراکنش خصوصی، کاری نداریم
-    if (!fromPartner && !toPartner)
-      return ok({ skipped: "no-partner" });
-
-    // هر دو شریک‌اند ⇒ انتقال داخلی، از نظر سرمایهٔ کل خنثی است
-    if (fromPartner && toPartner)
+    if (fromPartner && toPartner) {
+      // انتقال داخلی بین دو شریک ⇒ از نظر سرمایهٔ کل خنثی است
       return ok({ skipped: "internal-transfer" });
-
-    // پول از بانک به حساب شریک رفت ⇒ پرداخت به شریک / خروج وجه (OUT)
-    // پول از حساب شریک به بانک آمد ⇒ دریافت از شریک / ورود وجه (IN)
-    let kind: "IN" | "OUT" = toPartner ? "OUT" : "IN";
-
-    // پشتیبانی از ارسال صریح نوع تراکنش از طرف کیف پول
-    if (b.kind === "IN" || b.kind === "OUT") {
-      kind = b.kind;
-    }
-    const partnerId = (toPartner || fromPartner) as string;
-
-    /* --- شریک باید واقعاً وجود داشته باشد --- */
-    const matchedPartner = partners.find(p => p.id === partnerId);
-    if (!matchedPartner)
-      return Response.json({
-        error: `شریکی با شناسهٔ ${partnerId} در نرم‌افزار سرمایه نیست. `
-             + `نگاشت را بررسی کنید.`,
-      }, { status: 400 });
-
-    // فیلتر قطعی: شریک باید حتماً یکی از دو شخص «سلطانی» یا «مزینانی» باشد
-    const pName = normalizeFa(matchedPartner.name);
-    if (!pName.includes("سلطانی") && !pName.includes("مزینانی")) {
-      return ok({ skipped: "no-partner" });
     }
 
-    /* --- ضد تکرار بر اساس شناسه منبع کیف پول --- */
-    const srcId = String(b.id || "");
-    if (srcId) {
-      const dup = await findBySource("wallet", srcId);
-      if (dup) return ok({ skipped: "duplicate", id: dup.id });
+    const partnerId = (toPartner || fromPartner) as string | null;
+    if (partnerId) {
+      const matchedPartner = partners.find(p => p.id === partnerId);
+      const pName = matchedPartner ? normalizeFa(matchedPartner.name) : "";
+
+      // فیلتر قطعی: شریک باید حتماً یکی از دو شخص «سلطانی» یا «مزینانی» باشد
+      if (pName.includes("سلطانی") || pName.includes("مزینانی")) {
+        let kind: "IN" | "OUT" = toPartner ? "OUT" : "IN";
+        if (b.kind === "IN" || b.kind === "OUT") {
+          kind = b.kind;
+        }
+
+        /* --- ضد تکرار بر اساس شناسه منبع کیف پول --- */
+        if (srcId) {
+          const dup = await findBySource("wallet", srcId);
+          if (dup) return ok({ skipped: "duplicate", id: dup.id, type: "equity" });
+        }
+
+        /* --- ضد تکرار هوشمند بر اساس تطابق شریک، نوع، تاریخ شمسی و مبلغ --- */
+        const existing = await findSimilarTransaction({
+          partnerId,
+          kind,
+          amountRial: amount,
+          jdate,
+        });
+        if (existing) {
+          return ok({ skipped: "duplicate", id: existing.id, type: "equity" });
+        }
+
+        const t = await createTransaction({
+          id: newId(),
+          partner_id: partnerId,
+          kind,
+          amount_rial: amount,
+          price_rial_per_kg: null,        // هنوز قیمت ندارد
+          status: "pending",              // ⇒ خارج از همهٔ محاسبات
+          jdate,
+          description: b.description ? String(b.description).trim() : "",
+          source: "wallet",
+          source_id: srcId || null,
+        });
+
+        return ok({ created: t.id, kind, partner_id: partnerId, type: "equity" });
+      }
     }
 
-    /* --- تاریخ: کیف پول '1404/06/22' می‌دهد --- */
-    let jdate = "";
-    if (b.shamsiDate) jdate = fromSlash(String(b.shamsiDate));
-    if (!jdate && b.jdate && /^\d{8}$/.test(String(b.jdate))) jdate = String(b.jdate);
-    if (!isValidJdate(jdate))
-      return Response.json({ error: "تاریخ نامعتبر است." }, { status: 400 });
+    /* ========================================================== */
+    /* ۲. بررسی پرسنل سیستم حقوق و دستمزد (Payroll)              */
+    /* ========================================================== */
+    const employees = await listEmployees();
+    const matchedEmp = matchEmployee(b.toAccountName, employees) || matchEmployee(b.fromAccountName, employees);
 
-    /* --- مبلغ: هر دو نرم‌افزار ریال‌اند، کارمزد نادیده گرفته می‌شود --- */
-    const amount = String(Math.round(Number(b.amount) || 0));
-    if (!amount || Number(amount) <= 0)
-      return Response.json({ error: "مبلغ نامعتبر است." }, { status: 400 });
+    if (matchedEmp) {
+      /* --- ضد تکرار بر اساس شناسه منبع کیف پول --- */
+      if (srcId) {
+        const dupPay = await findPaymentBySourceId(srcId);
+        if (dupPay) {
+          return ok({ skipped: "duplicate", id: dupPay.id, type: "payroll" });
+        }
+      }
 
-    /* --- ضد تکرار هوشمند بر اساس تطابق شریک، نوع، تاریخ شمسی و مبلغ --- */
-    const existing = await findSimilarTransaction({
-      partnerId,
-      kind,
-      amountRial: amount,
-      jdate,
-    });
-    if (existing) {
-      return ok({ skipped: "duplicate", id: existing.id });
+      const year = parseInt(jdate.slice(0, 4), 10);
+      const month = parseInt(jdate.slice(4, 6), 10);
+
+      /* --- یافتن یا ایجاد رکورد ماهانه کارمند --- */
+      const existingRec = await getMonthlyRecord(matchedEmp.id, year, month);
+      let recordId = existingRec?.id;
+      if (!recordId) {
+        recordId = await saveMonthlyRecord(matchedEmp.id, year, month, "0", 0);
+      }
+
+      /* --- ضد تکرار هوشمند بر اساس رکورد ماه، تاریخ پرداخت و مبلغ --- */
+      const similarPay = await findSimilarPayrollPayment(recordId, jdate, amount);
+      if (similarPay) {
+        return ok({ skipped: "duplicate", id: similarPay.id, type: "payroll" });
+      }
+
+      /* --- ثبت در جدول پرداختی‌های حقوق در حالت «در انتظار» --- */
+      const paymentId = await createPayment({
+        record_id: recordId,
+        payment_date: jdate,
+        amount_rial: amount,
+        description: b.description ? String(b.description).trim() : "پرداخت از کیف پول",
+        payment_type: "در انتظار",
+        source_id: srcId || null,
+      });
+
+      return ok({
+        created: paymentId,
+        type: "payroll",
+        employee_id: matchedEmp.id,
+        employee_name: matchedEmp.name,
+        year,
+        month,
+        status: "pending",
+      });
     }
 
-    const t = await createTransaction({
-      id: newId(),
-      partner_id: partnerId,
-      kind,
-      amount_rial: amount,
-      price_rial_per_kg: null,        // هنوز قیمت ندارد
-      status: "pending",              // ⇒ خارج از همهٔ محاسبات
-      jdate,
-      description: b.description ? String(b.description).trim() : "",
-      source: "wallet",
-      source_id: srcId || null,
-    });
-
-    return ok({ created: t.id, kind, partner_id: partnerId });
+    // نه شریک سرمایه است و نه پرسنل حقوق
+    return ok({ skipped: "no-match" });
   } catch (e) { return fail(e); }
 }
 

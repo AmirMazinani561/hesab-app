@@ -63,6 +63,7 @@ export type PayrollPayment = {
   amount_rial: string;
   description: string;
   payment_type: string;
+  source_id?: string | null;
   created_at?: string;
 };
 
@@ -168,6 +169,8 @@ export async function ensureDatabase(): Promise<void> {
 
   await addColumnIfMissing("partners", "color", "varchar(32)");
   await addColumnIfMissing("partners", "note", TXT());
+
+  await addColumnIfMissing("payroll_payments", "source_id", "varchar(64)");
 
   // ستون‌هایی که تازه اضافه شده‌اند مقدار خالی دارند، ولی کد انتظار
   // مقدار معتبر دارد. پیش‌فرض‌های امن را یک‌بار پر می‌کنیم.
@@ -467,10 +470,57 @@ export const listPayments = (recordId: string) => q<PayrollPayment>(
 export async function createPayment(p: Omit<PayrollPayment, "created_at" | "id">) {
   const id = newId();
   await exec(
-    `insert into payroll_payments (id, record_id, payment_date, amount_rial, description, payment_type) values (?, ?, ?, ?, ?, ?)`,
-    [id, p.record_id, p.payment_date, p.amount_rial, p.description, p.payment_type]
+    `insert into payroll_payments (id, record_id, payment_date, amount_rial, description, payment_type, source_id) values (?, ?, ?, ?, ?, ?, ?)`,
+    [id, p.record_id, p.payment_date, p.amount_rial, p.description || "", p.payment_type, p.source_id || null]
   );
   return id;
+}
+
+export async function updatePayment(
+  id: string,
+  fields: { paymentType?: string; description?: string; amountRial?: string; paymentDate?: string }
+) {
+  const sets: string[] = [];
+  const params: unknown[] = [];
+  if (fields.paymentType !== undefined) {
+    sets.push("payment_type = ?");
+    params.push(fields.paymentType);
+  }
+  if (fields.description !== undefined) {
+    sets.push("description = ?");
+    params.push(fields.description);
+  }
+  if (fields.amountRial !== undefined) {
+    sets.push("amount_rial = ?");
+    params.push(fields.amountRial);
+  }
+  if (fields.paymentDate !== undefined) {
+    sets.push("payment_date = ?");
+    params.push(fields.paymentDate);
+  }
+  if (!sets.length) return;
+  params.push(id);
+  await exec(`update payroll_payments set ${sets.join(", ")} where id = ?`, params);
+}
+
+export async function findPaymentBySourceId(sourceId: string): Promise<PayrollPayment | null> {
+  const r = await q<PayrollPayment>(
+    `select * from payroll_payments where source_id = ? limit 1`,
+    [sourceId]
+  );
+  return r[0] || null;
+}
+
+export async function findSimilarPayrollPayment(
+  recordId: string,
+  paymentDate: string,
+  amountRial: string
+): Promise<PayrollPayment | null> {
+  const r = await q<PayrollPayment>(
+    `select * from payroll_payments where record_id = ? and payment_date = ? and amount_rial = ? limit 1`,
+    [recordId, paymentDate, amountRial]
+  );
+  return r[0] || null;
 }
 
 export const deletePayment = (id: string) => exec(`delete from payroll_payments where id = ?`, [id]);

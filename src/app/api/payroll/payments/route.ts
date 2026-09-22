@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireUser } from "@/lib/auth";
-import { createPayment, deletePayment, listPayments } from "@/db/repo";
+import { createPayment, deletePayment, listPayments, updatePayment } from "@/db/repo";
 
 export async function GET(req: Request) {
   try {
@@ -39,6 +39,23 @@ export async function POST(req: Request) {
     });
     
     return NextResponse.json({ success: true, paymentId });
+  } catch (err: any) {
+    const s = err.status || 500;
+    return NextResponse.json({ error: err.message }, { status: s });
+  }
+}
+
+export async function PATCH(req: Request) {
+  try {
+    await requireUser();
+    const { id, paymentType, description, amountRial, paymentDate } = await req.json();
+    
+    if (!id) {
+      return NextResponse.json({ error: "id is required" }, { status: 400 });
+    }
+
+    await updatePayment(id, { paymentType, description, amountRial, paymentDate });
+    return NextResponse.json({ success: true });
   } catch (err: any) {
     const s = err.status || 500;
     return NextResponse.json({ error: err.message }, { status: s });

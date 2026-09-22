@@ -212,6 +212,31 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
     }
   };
 
+  const handleFinalizePayment = async (paymentId: string, newType: string) => {
+    if (!newType) return;
+    try {
+      const res = await fetch("/api/payroll/payments", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: paymentId, paymentType: newType }),
+      });
+      if (res.ok) {
+        if (currentRecord?.id) {
+          const payRes = await fetch(`/api/payroll/payments?recordId=${currentRecord.id}`);
+          if (payRes.ok) {
+            setPayments(await payRes.json());
+          }
+        }
+      } else {
+        const d = await res.json();
+        alert("خطا در ثبت نهایی: " + (d.error || "نامشخص"));
+      }
+    } catch (err) {
+      console.error(err);
+      alert("خطای ارتباط با سرور");
+    }
+  };
+
   const sortedPayments = useMemo(() => {
     return [...payments].sort((a, b) => {
       const dA = parseInt(toEnglishDigits(a.payment_date || "0").replace(/\D/g, ""), 10) || 0;
@@ -257,6 +282,7 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
 
   const getRowStyle = (type: string) => {
     switch(type) {
+      case "در انتظار": return { backgroundColor: "rgba(217, 119, 6, 0.15)" };
       case "پول نقد": return { backgroundColor: "rgba(26, 127, 55, 0.1)" };
       case "شارژ و اینترنت": return { backgroundColor: "rgba(9, 105, 218, 0.1)" };
       case "خرید": return { backgroundColor: "rgba(180, 83, 9, 0.1)" };
@@ -608,7 +634,39 @@ export default function EmployeeClient({ employeeId, employeeName }: { employeeI
                     <tr key={p.id} style={getRowStyle(p.payment_type)}>
                       <td>{toPersianDigits(i + 1)}</td>
                       <td>{formatDateInput(p.payment_date)}</td>
-                      <td>{p.payment_type}</td>
+                      <td>
+                        {p.payment_type === "در انتظار" ? (
+                          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                            <span style={{
+                              backgroundColor: "#fef3c7",
+                              color: "#b45309",
+                              border: "1px solid #fcd34d",
+                              padding: "2px 8px",
+                              borderRadius: 4,
+                              fontSize: 11,
+                              fontWeight: "bold",
+                              whiteSpace: "nowrap"
+                            }}>
+                              در انتظار
+                            </span>
+                            <select
+                              className="pay-input no-print"
+                              style={{ padding: "2px 6px", fontSize: 11, height: 26, minWidth: 125 }}
+                              defaultValue=""
+                              onChange={e => {
+                                if (e.target.value) handleFinalizePayment(p.id, e.target.value);
+                              }}
+                            >
+                              <option value="" disabled>تعیین نوع پرداخت...</option>
+                              {PAYMENT_TYPES.map(t => (
+                                <option key={t} value={t}>{t}</option>
+                              ))}
+                            </select>
+                          </div>
+                        ) : (
+                          p.payment_type
+                        )}
+                      </td>
                       <td>{p.description}</td>
                       <td style={{ fontWeight: "bold" }}>{formatRial(p.amount_rial)}</td>
                       <td>
